@@ -1,0 +1,58 @@
+#:schema node_modules/wrangler/config-schema.json
+# Cloudflare configuration for CubeChronicles.com
+# Deploys as a Cloudflare Pages project (Astro build output in ./dist).
+#
+# IMPORTANT: This file contains NO secrets. Bindings reference resources you
+# create in your own Cloudflare account (see docs/cloudflare-setup.md).
+# Replace the placeholder IDs marked REPLACE_ME before deploying.
+
+name = "cubechronicles"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "./dist"
+
+# ---------------------------------------------------------------------------
+# D1 database (users, sessions, questions, responses, subscriptions, etc.)
+# Create with:  wrangler d1 create cubechronicles
+# then paste the returned database_id below.
+# ---------------------------------------------------------------------------
+[[d1_databases]]
+binding = "DB"
+database_name = "cubechronicles"
+database_id = "REPLACE_ME_D1_DATABASE_ID"
+migrations_dir = "migrations"
+
+# ---------------------------------------------------------------------------
+# KV namespace for lightweight rate-limiting counters (optional but recommended).
+# Create with:  wrangler kv namespace create RATE_LIMIT
+# ---------------------------------------------------------------------------
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "REPLACE_ME_KV_NAMESPACE_ID"
+
+# Required by the Astro Cloudflare adapter's session driver.
+# Create with:  wrangler kv namespace create SESSION
+[[kv_namespaces]]
+binding = "SESSION"
+id = "REPLACE_ME_SESSION_KV_NAMESPACE_ID"
+
+# ---------------------------------------------------------------------------
+# R2 bucket for owner CSV/JSON exports (optional; exports also stream directly).
+# Create with:  wrangler r2 bucket create cubechronicles-exports
+# ---------------------------------------------------------------------------
+[[r2_buckets]]
+binding = "EXPORTS"
+bucket_name = "cubechronicles-exports"
+
+# ---------------------------------------------------------------------------
+# Non-secret variables. Secrets (API keys, session secret) are set with
+#   wrangler pages secret put <NAME>
+# and are listed in .dev.vars.example — never commit real values.
+# ---------------------------------------------------------------------------
+[vars]
+SITE_URL = "https://cubechronicles.com"
+EMAIL_FROM_ADDRESS = "no-reply@cubechronicles.com"
+EMAIL_FROM_NAME = "The Cube Chronicles"
+EMAIL_PROVIDER = "resend"           # resend | mailchannels | log
+ADMIN_EMAIL = "owner@cubechronicles.com"
+PUBLIC_TURNSTILE_SITE_KEY = "REPLACE_ME_TURNSTILE_SITE_KEY"

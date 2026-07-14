@@ -1,0 +1,40 @@
+{
+  "name": "cubechronicles-site",
+  "version": "1.0.0",
+  "description": "Official website for The Cube Chronicles — a 15-book historical time-travel adventure series by Jeremy Tinder.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "wrangler pages dev ./dist",
+    "astro": "astro",
+    "check": "astro check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "lint:links": "node scripts/check-links.mjs",
+    "verify:seo": "node scripts/verify-seo.mjs",
+    "images:optimize": "node scripts/optimize-images.mjs",
+    "db:migrate:local": "wrangler d1 migrations apply cubechronicles --local",
+    "db:migrate:remote": "wrangler d1 migrations apply cubechronicles --remote",
+    "db:seed:local": "wrangler d1 execute cubechronicles --local --file=./db/seed.sql",
+    "db:seed:remote": "wrangler d1 execute cubechronicles --remote --file=./db/seed.sql",
+    "deploy": "astro build && wrangler pages deploy ./dist"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^12.2.1",
+    "@astrojs/sitemap": "^3.2.1",
+    "astro": "^5.1.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "sharp": "^0.33.5",
+    "vitest": "^2.1.8",
+    "wrangler": "^3.99.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
