@@ -1,0 +1,84 @@
+---
+import Base from '../../layouts/Base.astro';
+import AdminNav from '../../components/AdminNav.astro';
+import Flash from '../../components/Flash.astro';
+import { getEnv } from '../../lib/env';
+import { requireAdmin } from '../../lib/admin';
+import { csrfFieldName } from '../../lib/csrf';
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/login?next=/admin/users&msg=needlogin');
+if (!requireAdmin(user)) return Astro.redirect('/account?err=forbidden');
+const env = getEnv(Astro.locals);
+const csrf = Astro.cookies.get('cc_csrf')?.value ?? '';
+const q = (new URL(Astro.request.url).searchParams.get('q') || '').trim();
+
+const stmt = q
+  ? env.DB.prepare(
+      `SELECT id, display_name, email, role, status, email_verified, created_at FROM users
+       WHERE deleted_at IS NULL AND (display_name LIKE ? OR email LIKE ?) ORDER BY created_at DESC LIMIT 200`
+    ).bind(`%${q}%`, `%${q}%`)
+  : env.DB.prepare(
+      `SELECT id, display_name, email, role, status, email_verified, created_at FROM users
+       WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT 200`
+    );
+const rows = (await stmt.all<any>()).results ?? [];
+---
+<Base title="Admin · Users" description="Registered users." canonicalPath="/admin/users" noindex={true}>
+  <div class="container section">
+    <AdminNav active="users" />
+    <Flash />
+    <h1>Users <span class="muted">({rows.length})</span></h1>
+    <form method="GET" class="search-row" role="search">
+      <input type="search" name="q" value={q} placeholder="Search name or email…" aria-label="Search users" />
+      <button class="btn btn-ghost" type="submit">Search</button>
+    </form>
+    <div class="table-wrap">
+      <table class="admin-table">
+        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Verified</th><th>Joined</th><th>Actions</th></tr></thead>
+        <tbody>
+          {rows.map((u) => (
+            <tr>
+              <td>{u.display_name}</td>
+              <td class="email">{u.email}</td>
+              <td>{u.role}</td>
+              <td><span class={`badge badge-status-${u.status === 'active' ? 'approved' : u.status === 'banned' ? 'rejected' : 'pending'}`}>{u.status}</span></td>
+              <td>{u.email_verified ? 'Yes' : 'No'}</td>
+              <td class="muted">{new Date(u.created_at).toLocaleDateString()}</td>
+              <td>
+                {u.id !== user.id && u.role !== 'admin' && (
+                  <form method="POST" action="/api/admin/moderate" class="row-actions">
+                    <input type="hidden" name={csrfFieldName()} value={csrf} />
+                    <input type="hidden" name="type" value="user" />
+                    <input type="hidden" name="id" value={u.id} />
+                    {u.status === 'active' ? (
+                      <>
+                        <button class="btn btn-ghost btn-xs" name="action" value="suspend">Suspend</button>
+                        <button class="btn btn-ghost btn-xs danger" name="action" value="ban">Ban</button>
+                      </>
+                    ) : (
+                      <button class="btn btn-ghost btn-xs" name="action" value="activate">Reinstate</button>
+                    )}
+                  </form>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="muted small">Passwords and tokens are never shown. This view reads directly from D1 and excludes deleted users.</p>
+  </div>
+</Base>
+<style>
+  .search-row { display: flex; gap: 0.5rem; margin: 1rem 0 1.5rem; max-width: 30rem; }
+  .table-wrap { overflow-x: auto; }
+  .admin-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; font-family: var(--font-sans); }
+  .admin-table th { text-align: left; background: var(--parchment); padding: 0.5rem 0.6rem; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--muted); }
+  .admin-table td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); }
+  .email { color: var(--muted); }
+  .row-actions { display: flex; gap: 0.3rem; }
+  .btn-xs { padding: 0.25rem 0.55rem; font-size: 0.78rem; }
+  .btn-xs.danger { color: var(--error-fg); border-color: var(--error-fg); }
+  .small { font-size: 0.85rem; margin-top: 1rem; }
+</style>

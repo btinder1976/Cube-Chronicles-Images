@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+export const prerender = true;
+---
+<Base
+  title="Cookie & Analytics Notice — The Cube Chronicles"
+  description="The small set of cookies this site uses for sign-in and security, and our privacy-conscious approach to analytics."
+  canonicalPath="/cookies"
+>
+  <div class="container-narrow section legal">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Cookie & Analytics Notice' }]} />
+    <h1>Cookie &amp; Analytics Notice</h1>
+    <p class="muted"><strong>Starter template — last updated 14 July 2026.</strong> Review with an attorney before launch.</p>
+
+    <h2>Strictly necessary cookies</h2>
+    <table class="facts-table">
+      <thead><tr><th scope="col">Cookie</th><th scope="col">Purpose</th><th scope="col">Lifetime</th></tr></thead>
+      <tbody>
+        <tr><td><code>cc_session</code></td><td>Keeps you signed in (HttpOnly, Secure)</td><td>Up to 30 days</td></tr>
+        <tr><td><code>cc_csrf</code></td><td>Protects forms against cross-site request forgery</td><td>7 days</td></tr>
+      </tbody>
+    </table>
+    <p>These cookies are essential for sign-in and security and cannot be turned off while you are logged in. We do not use advertising or cross-site tracking cookies.</p>
+
+    <h2>Bot protection</h2>
+    <p>Sign-in and posting forms use Cloudflare Turnstile, a privacy-focused alternative to CAPTCHA, to help block automated abuse.</p>
+
+    <h2>Analytics</h2>
+    <p>If web analytics are enabled, we use a privacy-conscious solution (such as Cloudflare Web Analytics) that does not use cross-site tracking cookies or build advertising profiles. <em>[Owner to confirm the analytics provider and update this section.]</em></p>
+
+    <p>For more detail, see our <a href="/privacy">Privacy Policy</a>.</p>
+  </div>
+</Base>
+
+<style>
+  .legal h2 { margin-top: 2rem; }
+  .facts-table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+  .facts-table th { text-align: left; background: var(--parchment); padding: 0.5rem 0.7rem; font-family: var(--font-sans); font-size: 0.82rem; }
+  .facts-table td { padding: 0.5rem 0.7rem; border-bottom: 1px solid var(--border); }
+</style>

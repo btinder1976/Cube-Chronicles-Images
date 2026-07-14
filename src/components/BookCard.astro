@@ -1,0 +1,30 @@
+---
+import Cover from './Cover.astro';
+import type { Book } from '../lib/content';
+export interface Props { book: Book; loading?: 'lazy' | 'eager'; }
+const { book, loading = 'lazy' } = Astro.props;
+---
+<article class="book-card">
+  <a href={book.url} class="book-card-link" aria-label={`Book ${book.number}: ${book.title}`}>
+    <div class="cover-wrap">
+      <span class="badge badge-book">Book {book.number}</span>
+      <Cover book={book} loading={loading} sizes="(max-width: 600px) 42vw, (max-width: 900px) 30vw, 220px" />
+    </div>
+    <div class="book-card-body">
+      <h3 class="book-card-title">{book.title}</h3>
+      <p class="book-card-setting">{book.settingRegion} · {book.eraTag}</p>
+      <p class="book-card-teaser">{book.teaser}</p>
+    </div>
+  </a>
+</article>
+
+<style>
+  .book-card { height: 100%; }
+  .book-card-link { display: flex; flex-direction: column; gap: 0.75rem; text-decoration: none; color: inherit; height: 100%; padding: 0.6rem; border-radius: 12px; transition: transform 0.15s ease, background 0.15s ease; }
+  .book-card-link:hover { background: var(--surface); transform: translateY(-3px); box-shadow: var(--shadow-sm); }
+  .cover-wrap { position: relative; }
+  .cover-wrap .badge { position: absolute; top: 8px; left: 8px; z-index: 2; }
+  .book-card-title { font-size: 1.02rem; margin: 0; line-height: 1.25; color: var(--indigo-900); }
+  .book-card-setting { font-family: var(--font-sans); font-size: 0.78rem; color: var(--gold-600); font-weight: 600; margin: 0.15rem 0 0.35rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  .book-card-teaser { font-size: 0.9rem; color: var(--ink-soft); margin: 0; }
+</style>

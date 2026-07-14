@@ -1,0 +1,77 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { series, books } from '../lib/content';
+
+export const prerender = true;
+const siteUrl = (import.meta.env.SITE || 'https://cubechronicles.com').replace(/\/+$/, '');
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BookSeries',
+  name: series.title,
+  alternateName: series.tagline,
+  author: { '@type': 'Person', name: series.author },
+  numberOfBooks: series.bookCount,
+  inLanguage: 'en',
+  url: siteUrl + '/series-facts',
+  description: series.shortDescription,
+};
+---
+<Base
+  title="Series Facts — The Cube Chronicles"
+  description="A plain-language facts sheet for The Cube Chronicles: 15 books, author, age range, reading order, settings by book, and themes. Designed to be easy to read and cite."
+  canonicalPath="/series-facts"
+  jsonLd={jsonLd}
+  modifiedTime="2026-07-14"
+>
+  <div class="container-narrow section">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Series facts' }]} />
+    <header class="stack">
+      <p class="eyebrow">Quick reference</p>
+      <h1>Series facts</h1>
+      <p class="lede">A concise, citable facts sheet about The Cube Chronicles. All facts are drawn from the books themselves.</p>
+    </header>
+
+    <table class="facts-table">
+      <caption class="visually-hidden">Key facts about The Cube Chronicles series</caption>
+      <tbody>
+        <tr><th scope="row">Series title</th><td>{series.title}</td></tr>
+        <tr><th scope="row">Author</th><td>{series.author}</td></tr>
+        <tr><th scope="row">Number of books</th><td>{series.bookCount} (complete)</td></tr>
+        <tr><th scope="row">Genre</th><td>Middle-grade historical time-travel adventure</td></tr>
+        <tr><th scope="row">Reading age</th><td>{series.ageRange}</td></tr>
+        <tr><th scope="row">Reading order</th><td>Best read 1 → 15; each book is also self-contained</td></tr>
+        <tr><th scope="row">Total length</th><td>≈ {series.totalPages.toLocaleString()} paperback pages</td></tr>
+        <tr><th scope="row">Central premise</th><td>A nine-sided cube found beneath a shed carries three siblings across the ancient world</td></tr>
+        <tr><th scope="row">Recurring family</th><td>{series.family.name}, of {series.family.home}</td></tr>
+        <tr><th scope="row">Themes</th><td>{series.themes.join(', ')}</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Books & settings in reading order</h2>
+    <table class="facts-table settings-table">
+      <thead><tr><th scope="col">#</th><th scope="col">Title</th><th scope="col">Setting</th><th scope="col">Era</th></tr></thead>
+      <tbody>
+        {books.map((b) => (
+          <tr>
+            <td>{b.number}</td>
+            <td><a href={b.url}>{b.title}</a></td>
+            <td>{b.settingRegion}</td>
+            <td>{b.eraTag}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+
+    <p class="muted"><em>Last updated 14 July 2026.</em></p>
+  </div>
+</Base>
+
+<style>
+  .lede { font-size: 1.15rem; }
+  .facts-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.98rem; }
+  .facts-table th[scope='row'] { text-align: left; width: 34%; vertical-align: top; padding: 0.6rem 0.8rem; color: var(--muted); font-family: var(--font-sans); font-size: 0.85rem; }
+  .facts-table td { padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border); }
+  .settings-table th { text-align: left; padding: 0.5rem 0.8rem; background: var(--parchment); font-family: var(--font-sans); font-size: 0.82rem; }
+  .settings-table td a { text-decoration: none; }
+</style>

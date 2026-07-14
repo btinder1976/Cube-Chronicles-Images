@@ -1,0 +1,73 @@
+---
+import Base from '../../layouts/Base.astro';
+import AdminNav from '../../components/AdminNav.astro';
+import Flash from '../../components/Flash.astro';
+import { getEnv } from '../../lib/env';
+import { requireAdmin } from '../../lib/admin';
+import { csrfFieldName } from '../../lib/csrf';
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/login?next=/admin/notifications&msg=needlogin');
+if (!requireAdmin(user)) return Astro.redirect('/account?err=forbidden');
+const env = getEnv(Astro.locals);
+const csrf = Astro.cookies.get('cc_csrf')?.value ?? '';
+const only = new URL(Astro.request.url).searchParams.get('status');
+
+const stmt = only === 'failed'
+  ? env.DB.prepare(`SELECT nd.*, q.title as qt FROM notification_deliveries nd JOIN questions q ON q.id=nd.question_id WHERE nd.status='failed' ORDER BY nd.created_at DESC LIMIT 200`)
+  : env.DB.prepare(`SELECT nd.*, q.title as qt FROM notification_deliveries nd JOIN questions q ON q.id=nd.question_id ORDER BY nd.created_at DESC LIMIT 200`);
+const rows = (await stmt.all<any>()).results ?? [];
+---
+<Base title="Admin · Notifications" description="Notification delivery log." canonicalPath="/admin/notifications" noindex={true}>
+  <div class="container section">
+    <AdminNav active="notifications" />
+    <Flash />
+    <h1>Notification delivery log</h1>
+    <nav class="status-tabs">
+      <a class:list={['pill', { active: only !== 'failed' }]} href="/admin/notifications">All</a>
+      <a class:list={['pill', { active: only === 'failed' }]} href="/admin/notifications?status=failed">Failed only</a>
+    </nav>
+    {rows.length === 0 ? <p class="muted">No deliveries recorded yet.</p> : (
+      <div class="table-wrap">
+        <table class="admin-table">
+          <thead><tr><th>When</th><th>To</th><th>Question</th><th>Provider</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            {rows.map((d) => (
+              <tr>
+                <td class="muted">{new Date(d.created_at).toLocaleString()}</td>
+                <td class="email">{d.email}</td>
+                <td>{d.qt}</td>
+                <td>{d.provider ?? '—'}</td>
+                <td>
+                  <span class={`badge badge-status-${d.status === 'sent' ? 'approved' : 'rejected'}`}>{d.status}</span>
+                  {d.error && <span class="err" title={d.error}>⚠</span>}
+                </td>
+                <td>
+                  {d.status === 'failed' && (
+                    <form method="POST" action="/api/admin/resend">
+                      <input type="hidden" name={csrfFieldName()} value={csrf} />
+                      <input type="hidden" name="delivery_id" value={d.id} />
+                      <button class="btn btn-ghost btn-xs" type="submit">Resend</button>
+                    </form>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </div>
+</Base>
+<style>
+  .status-tabs { display: flex; gap: 0.4rem; margin: 1rem 0 1.5rem; }
+  .status-tabs .active { background: var(--indigo-800); color: var(--gold-300); border-color: var(--indigo-800); }
+  .status-tabs .pill { text-decoration: none; }
+  .table-wrap { overflow-x: auto; }
+  .admin-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; font-family: var(--font-sans); }
+  .admin-table th { text-align: left; background: var(--parchment); padding: 0.5rem 0.6rem; font-size: 0.76rem; text-transform: uppercase; color: var(--muted); }
+  .admin-table td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); }
+  .email { color: var(--muted); }
+  .err { color: var(--error-fg); margin-left: 0.3rem; cursor: help; }
+  .btn-xs { padding: 0.25rem 0.55rem; font-size: 0.78rem; }
+</style>

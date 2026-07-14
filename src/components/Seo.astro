@@ -1,0 +1,51 @@
+---
+export interface Props {
+  title: string;
+  description: string;
+  canonicalPath?: string; // absolute path, e.g. /books/01-.../
+  ogImage?: string; // absolute path to image
+  ogType?: 'website' | 'book' | 'article';
+  noindex?: boolean;
+  publishedTime?: string;
+  modifiedTime?: string;
+}
+
+const {
+  title,
+  description,
+  canonicalPath,
+  ogImage = '/og/cube-chronicles-og.png',
+  ogType = 'website',
+  noindex = false,
+  publishedTime,
+  modifiedTime,
+} = Astro.props;
+
+const siteUrl = (import.meta.env.SITE || 'https://cubechronicles.com').replace(/\/+$/, '');
+const path = canonicalPath ?? new URL(Astro.request.url).pathname;
+const canonical = siteUrl + path;
+const image = ogImage.startsWith('http') ? ogImage : siteUrl + ogImage;
+const fullTitle = title.includes('Cube Chronicles') ? title : `${title} · The Cube Chronicles`;
+---
+
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{noindex && <meta name="robots" content="noindex, nofollow" />}
+
+<!-- Open Graph -->
+<meta property="og:type" content={ogType} />
+<meta property="og:site_name" content="The Cube Chronicles" />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={image} />
+<meta property="og:image:alt" content="The Cube Chronicles — a 15-book historical time-travel adventure" />
+{publishedTime && <meta property="article:published_time" content={publishedTime} />}
+{modifiedTime && <meta property="article:modified_time" content={modifiedTime} />}
+
+<!-- Twitter / X -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={image} />

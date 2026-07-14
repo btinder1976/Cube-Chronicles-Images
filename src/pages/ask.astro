@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { books } from '../lib/content';
+export const prerender = true;
+---
+<Base
+  title="Ask a Question — The Cube Chronicles"
+  description="Ask a question about any Cube Chronicles book. Registered readers can post questions on each book's page; a moderator reviews every submission."
+  canonicalPath="/ask"
+>
+  <div class="container-narrow section">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Ask a Question' }]} />
+    <h1>Ask a question</h1>
+    <p class="lede">Curious about a character, a setting, whether a book suits your reader, or a piece of the history? Ask on the relevant book's page — every question is reviewed by a moderator before it appears, and you'll be emailed when an answer is approved.</p>
+
+    <ol class="ask-steps">
+      <li><a href="/register">Create a free account</a> and confirm your email (you only need this to post — reading is always open).</li>
+      <li>Open the book your question is about.</li>
+      <li>Scroll to <strong>“Ask a question about this book,”</strong> write your question, and submit it for review.</li>
+    </ol>
+
+    <h2>Choose a book</h2>
+    <ul class="ask-books">
+      {books.map((b) => (
+        <li><a href={`${b.url}#ask`}><strong>Book {b.number}:</strong> {b.title}</a></li>
+      ))}
+    </ul>
+
+    <p class="muted">Have a general or non-book question, or a privacy request? Use the <a href="/contact">contact page</a> instead.</p>
+  </div>
+</Base>
+
+<style>
+  .lede { font-size: 1.12rem; }
+  .ask-steps { padding-left: 1.2rem; } .ask-steps li { margin-bottom: 0.6rem; }
+  .ask-books { columns: 2; column-gap: 2rem; list-style: none; padding: 0; font-family: var(--font-sans); font-size: 0.92rem; }
+  .ask-books a { text-decoration: none; color: var(--ink-soft); }
+  .ask-books a:hover { color: var(--link); }
+  @media (max-width: 600px) { .ask-books { columns: 1; } }
+</style>

@@ -1,0 +1,76 @@
+---
+import Base from '../../layouts/Base.astro';
+import AdminNav from '../../components/AdminNav.astro';
+import Flash from '../../components/Flash.astro';
+import { getEnv } from '../../lib/env';
+import { requireAdmin } from '../../lib/admin';
+import { csrfFieldName } from '../../lib/csrf';
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/login?next=/admin/questions&msg=needlogin');
+if (!requireAdmin(user)) return Astro.redirect('/account?err=forbidden');
+const env = getEnv(Astro.locals);
+const csrf = Astro.cookies.get('cc_csrf')?.value ?? '';
+const status = new URL(Astro.request.url).searchParams.get('status') || 'pending';
+const valid = ['pending', 'approved', 'rejected', 'archived'];
+const filter = valid.includes(status) ? status : 'pending';
+
+const rows = (
+  await env.DB.prepare(
+    `SELECT q.id, q.title, q.body, q.book_slug, q.slug, q.status, q.created_at, u.display_name, u.email
+     FROM questions q JOIN users u ON u.id = q.user_id
+     WHERE q.status = ? AND q.deleted_at IS NULL ORDER BY q.created_at DESC LIMIT 200`
+  ).bind(filter).all<any>()
+).results ?? [];
+---
+<Base title="Admin · Questions" description="Moderate questions." canonicalPath="/admin/questions" noindex={true}>
+  <div class="container section">
+    <AdminNav active="questions" />
+    <Flash />
+    <h1>Questions</h1>
+    <nav class="status-tabs">
+      {valid.map((s) => (<a class:list={['pill', { active: s === filter }]} href={`/admin/questions?status=${s}`}>{s}</a>))}
+    </nav>
+    {rows.length === 0 ? <p class="muted">No {filter} questions.</p> : (
+      <ul class="mod-list">
+        {rows.map((q) => (
+          <li class="mod-item">
+            <div class="mod-head">
+              <span class={`badge badge-status-${q.status}`}>{q.status}</span>
+              <span class="mod-meta">{q.book_slug ?? 'series'} · by {q.display_name} ({q.email}) · {new Date(q.created_at).toLocaleString()}</span>
+            </div>
+            <form method="POST" action="/api/admin/moderate" class="mod-edit">
+              <input type="hidden" name={csrfFieldName()} value={csrf} />
+              <input type="hidden" name="type" value="question" />
+              <input type="hidden" name="id" value={q.id} />
+              <label class="visually-hidden" for={`t-${q.id}`}>Title</label>
+              <input id={`t-${q.id}`} name="title" type="text" value={q.title} />
+              <label class="visually-hidden" for={`b-${q.id}`}>Body</label>
+              <textarea id={`b-${q.id}`} name="body" rows="2">{q.body}</textarea>
+              <div class="mod-actions">
+                <button class="btn btn-primary btn-sm" name="action" value="approve">Approve</button>
+                <button class="btn btn-ghost btn-sm" name="action" value="edit">Save edit</button>
+                <button class="btn btn-ghost btn-sm" name="action" value="reject">Reject</button>
+                <button class="btn btn-ghost btn-sm" name="action" value="archive">Archive</button>
+                <button class="btn btn-ghost btn-sm danger" name="action" value="delete">Delete</button>
+              </div>
+            </form>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</Base>
+<style>
+  .status-tabs { display: flex; gap: 0.4rem; margin: 1rem 0 1.5rem; }
+  .status-tabs .active { background: var(--indigo-800); color: var(--gold-300); border-color: var(--indigo-800); text-decoration: none; }
+  .status-tabs .pill { text-decoration: none; }
+  .mod-list { list-style: none; padding: 0; }
+  .mod-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+  .mod-head { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.6rem; }
+  .mod-meta { font-family: var(--font-sans); font-size: 0.8rem; color: var(--muted); }
+  .mod-edit input, .mod-edit textarea { margin-bottom: 0.5rem; }
+  .mod-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+  .btn-sm.danger { color: var(--error-fg); border-color: var(--error-fg); }
+</style>

@@ -1,0 +1,53 @@
+---
+import Base from '../../layouts/Base.astro';
+import AdminNav from '../../components/AdminNav.astro';
+import { requireAdmin } from '../../lib/admin';
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/login?next=/admin/exports&msg=needlogin');
+if (!requireAdmin(user)) return Astro.redirect('/account?err=forbidden');
+
+const exports = [
+  { type: 'users', label: 'Registered users', note: 'Account records (no passwords or tokens).' },
+  { type: 'consent', label: 'Consent & subscription preferences', note: 'Email consent timestamps and notification defaults.' },
+  { type: 'questions', label: 'Questions', note: 'All questions with author and status.' },
+  { type: 'responses', label: 'Answers & comments', note: 'All responses with author and status.' },
+  { type: 'subscriptions', label: 'Discussion subscriptions', note: 'Who follows which discussion.' },
+  { type: 'notifications', label: 'Notification delivery log', note: 'Every email send attempt.' },
+  { type: 'moderation', label: 'Moderation audit log', note: 'Every moderator action taken.' },
+];
+---
+<Base title="Admin · Exports" description="Export site data." canonicalPath="/admin/exports" noindex={true}>
+  <div class="container section">
+    <AdminNav active="exports" />
+    <h1>Data exports</h1>
+    <p class="muted">Download your data as CSV or JSON. Exports never include password hashes or security tokens. Every export is recorded in the moderation audit log.</p>
+    <div class="grid export-grid">
+      {exports.map((e) => (
+        <div class="panel export-card">
+          <h2>{e.label}</h2>
+          <p class="muted">{e.note}</p>
+          <p class="export-links">
+            <a class="btn btn-primary btn-sm" href={`/api/admin/export?type=${e.type}&format=csv`}>Download CSV</a>
+            <a class="btn btn-ghost btn-sm" href={`/api/admin/export?type=${e.type}&format=json`}>JSON</a>
+          </p>
+        </div>
+      ))}
+    </div>
+    <div class="panel direct-note">
+      <h2>Direct database access</h2>
+      <p>All data lives in your Cloudflare D1 database <code>cubechronicles</code>. You can query it any time from the Cloudflare dashboard or with Wrangler, for example:</p>
+      <pre><code>wrangler d1 execute cubechronicles --remote \
+  --command "SELECT status, COUNT(*) FROM questions GROUP BY status;"</code></pre>
+    </div>
+  </div>
+</Base>
+<style>
+  .export-grid { grid-template-columns: repeat(2, 1fr); margin-top: 1.5rem; }
+  @media (max-width: 640px) { .export-grid { grid-template-columns: 1fr; } }
+  .export-card h2 { font-size: 1.1rem; margin: 0 0 0.4rem; }
+  .export-links { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+  .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+  .direct-note { margin-top: 2rem; }
+  .direct-note pre { background: var(--indigo-900); color: var(--parchment); padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: 0.82rem; }
+</style>

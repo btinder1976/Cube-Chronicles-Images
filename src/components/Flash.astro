@@ -1,0 +1,36 @@
+---
+/** Renders a flash message from ?msg= / ?err= query params (server-rendered, no JS). */
+const url = new URL(Astro.request.url);
+const msg = url.searchParams.get('msg');
+const err = url.searchParams.get('err');
+const warn = url.searchParams.get('warn');
+
+const messages: Record<string, string> = {
+  registered: 'Thanks! Check your inbox to confirm your email before posting.',
+  verified: 'Your email is confirmed. Welcome — you can now take part in discussions.',
+  loggedin: 'You are signed in.',
+  loggedout: 'You have been signed out.',
+  posted: 'Thank you. Your submission was received and is awaiting moderator review.',
+  subscribed: 'You are subscribed to this discussion.',
+  unsubscribed: 'You have been unsubscribed. You will no longer receive emails for this discussion.',
+  reported: 'Thank you for the report. A moderator will review this content.',
+  needlogin: 'Please sign in to continue.',
+  needverify: 'Please confirm your email address before posting.',
+};
+const errors: Record<string, string> = {
+  invalid: 'Please check the form and try again.',
+  credentials: 'Incorrect email or password.',
+  turnstile: 'Bot check failed. Please try again.',
+  csrf: 'Your session expired. Please refresh and try again.',
+  ratelimited: 'You are doing that too often. Please wait a moment and try again.',
+  notfound: 'That item could not be found.',
+  forbidden: 'You do not have permission to do that.',
+  token: 'That link is invalid or has expired.',
+};
+const text = (msg && messages[msg]) || null;
+const errText = (err && errors[err]) || (err ? 'Something went wrong. Please try again.' : null);
+const warnText = warn || null;
+---
+{text && <div class="alert alert-success" role="status">{text}</div>}
+{errText && <div class="alert alert-error" role="alert">{errText}</div>}
+{warnText && <div class="alert alert-warn" role="status">{warnText}</div>}

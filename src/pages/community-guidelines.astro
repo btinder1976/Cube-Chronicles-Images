@@ -1,0 +1,42 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+export const prerender = true;
+---
+<Base
+  title="Community Guidelines — The Cube Chronicles"
+  description="How to take part in The Cube Chronicles reader community: be kind, stay on topic, avoid spoilers, and keep it family-friendly."
+  canonicalPath="/community-guidelines"
+>
+  <div class="container-narrow section legal">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Community Guidelines' }]} />
+    <h1>Community Guidelines</h1>
+    <p class="lede">This is a warm, family-friendly space for readers, parents, educators, and librarians. A few simple rules keep it that way. Every post is reviewed by a moderator before it appears.</p>
+
+    <h2>Please do</h2>
+    <ul>
+      <li>Be kind, patient, and welcoming — many readers here are children and families.</li>
+      <li>Stay on topic: questions and answers about the books, characters, history, and reading experience.</li>
+      <li>Mark spoilers clearly, and avoid spoilers in question titles.</li>
+      <li>Cite the book when you can (“In Book 3…”), so answers are easy to follow.</li>
+    </ul>
+
+    <h2>Please don't</h2>
+    <ul>
+      <li>Post anything hateful, harassing, explicit, violent, or otherwise inappropriate for young readers.</li>
+      <li>Share personal or contact information (yours or anyone else's).</li>
+      <li>Advertise, spam, or post links unrelated to the series.</li>
+      <li>Reproduce large portions of the books' text.</li>
+    </ul>
+
+    <h2>Moderation</h2>
+    <p>All questions, answers, and comments are held for review and published only if approved. We may edit for clarity or safety, decline posts, or remove content and accounts that break these rules. You can <strong>report</strong> any post using its report link, and a moderator will review it.</p>
+
+    <h2>Notifications</h2>
+    <p>If you ask a question, you're subscribed to email updates when an answer is approved. You can unsubscribe from any notification email or in your <a href="/account">account</a> at any time.</p>
+
+    <p><a class="btn btn-primary" href="/books">Find a book to discuss</a></p>
+  </div>
+</Base>
+
+<style>.legal h2 { margin-top: 2rem; } .legal ul { padding-left: 1.2rem; } .lede { font-size: 1.15rem; }</style>

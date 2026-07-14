@@ -1,0 +1,44 @@
+---
+import type { Faq } from '../lib/content';
+export interface Props {
+  faqs: Faq[];
+  idPrefix?: string;
+  showSpoilers?: boolean; // if true, spoiler FAQs are rendered (behind disclosure + label)
+  heading?: string;
+}
+const { faqs, idPrefix = 'faq', showSpoilers = true, heading } = Astro.props;
+const visible = faqs.filter((f) => showSpoilers || !f.spoiler);
+---
+{heading && <h2 id={`${idPrefix}-heading`}>{heading}</h2>}
+<div class="faq-list">
+  {visible.map((f) => (
+    <details class:list={['faq-item', { spoiler: f.spoiler }]} id={`${idPrefix}-${f.anchor}`}>
+      <summary>
+        <span class="faq-q">{f.q}</span>
+        {f.spoiler && <span class="badge badge-status-pending faq-spoiler-badge">Spoiler</span>}
+      </summary>
+      <div class="faq-a">
+        {f.spoiler && <p class="faq-spoiler-note">This answer reveals plot details.</p>}
+        <p>{f.a}</p>
+        <a class="faq-permalink" href={`#${idPrefix}-${f.anchor}`} aria-label="Link to this question">#</a>
+      </div>
+    </details>
+  ))}
+</div>
+
+<style>
+  .faq-list { display: flex; flex-direction: column; gap: 0.6rem; }
+  .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; scroll-margin-top: 90px; }
+  .faq-item > summary { cursor: pointer; padding: 1rem 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; list-style: none; }
+  .faq-item > summary::-webkit-details-marker { display: none; }
+  .faq-item > summary::after { content: '+'; font-size: 1.4rem; color: var(--gold-600); flex: none; line-height: 1; }
+  .faq-item[open] > summary::after { content: '–'; }
+  .faq-item > summary:hover { background: var(--parchment); }
+  .faq-q { font-weight: 600; color: var(--indigo-900); }
+  .faq-a { padding: 0 1.2rem 1.1rem; position: relative; }
+  .faq-a > p { margin: 0 0 0.4rem; }
+  .faq-spoiler-note { font-family: var(--font-sans); font-size: 0.82rem; color: var(--warn-fg); font-style: italic; }
+  .faq-spoiler-badge { flex: none; }
+  .faq-permalink { font-family: var(--font-sans); font-size: 0.85rem; color: var(--muted); text-decoration: none; }
+  .faq-permalink:hover { color: var(--link); }
+</style>

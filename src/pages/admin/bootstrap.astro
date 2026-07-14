@@ -1,0 +1,29 @@
+---
+import Base from '../../layouts/Base.astro';
+import Flash from '../../components/Flash.astro';
+import { csrfFieldName } from '../../lib/csrf';
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/login?next=/admin/bootstrap&msg=needlogin');
+const csrf = Astro.cookies.get('cc_csrf')?.value ?? '';
+---
+<Base title="Admin setup — The Cube Chronicles" description="One-time admin setup." canonicalPath="/admin/bootstrap" noindex={true}>
+  <div class="container-narrow section">
+    <h1>Admin setup</h1>
+    <p class="muted">One-time step to grant the first administrator. You must be signed in and have a confirmed email. Enter the <code>ADMIN_BOOTSTRAP_TOKEN</code> you configured. Remove or rotate that secret afterward.</p>
+    <Flash />
+    {user.role === 'admin' ? (
+      <div class="alert alert-success">You are already an administrator. <a href="/admin">Open the dashboard →</a></div>
+    ) : (
+      <form method="POST" action="/api/admin/bootstrap" class="panel stack">
+        <input type="hidden" name={csrfFieldName()} value={csrf} />
+        <div class="field">
+          <label for="token">Bootstrap token</label>
+          <input id="token" name="token" type="password" required autocomplete="off" />
+        </div>
+        <button class="btn btn-primary" type="submit">Grant admin to this account</button>
+        <p class="muted small">Signed in as {user.email}. Only this account will be promoted.</p>
+      </form>
+    )}
+  </div>
+</Base>
+<style>.small { font-size: 0.85rem; }</style>

@@ -1,0 +1,56 @@
+---
+import Base from '../../layouts/Base.astro';
+import AdminNav from '../../components/AdminNav.astro';
+import Flash from '../../components/Flash.astro';
+import { getEnv } from '../../lib/env';
+import { requireAdmin } from '../../lib/admin';
+import { csrfFieldName } from '../../lib/csrf';
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/login?next=/admin/reports&msg=needlogin');
+if (!requireAdmin(user)) return Astro.redirect('/account?err=forbidden');
+const env = getEnv(Astro.locals);
+const csrf = Astro.cookies.get('cc_csrf')?.value ?? '';
+
+const rows = (
+  await env.DB.prepare(
+    `SELECT cr.id, cr.target_type, cr.target_id, cr.reason, cr.status, cr.created_at, u.display_name as reporter
+     FROM content_reports cr LEFT JOIN users u ON u.id = cr.reporter_id
+     WHERE cr.status = 'open' ORDER BY cr.created_at DESC LIMIT 200`
+  ).all<any>()
+).results ?? [];
+---
+<Base title="Admin · Reports" description="Content reports." canonicalPath="/admin/reports" noindex={true}>
+  <div class="container section">
+    <AdminNav active="reports" />
+    <Flash />
+    <h1>Open reports</h1>
+    {rows.length === 0 ? <p class="muted">No open reports. 🎉</p> : (
+      <ul class="mod-list">
+        {rows.map((r) => (
+          <li class="mod-item">
+            <p><strong>{r.target_type}</strong> <code>{r.target_id}</code> — reported by {r.reporter ?? 'unknown'} on {new Date(r.created_at).toLocaleString()}</p>
+            {r.reason && <blockquote>{r.reason}</blockquote>}
+            <div class="mod-actions">
+              <a class="btn btn-ghost btn-sm" href={`/admin/${r.target_type === 'question' ? 'questions' : 'responses'}`}>Review {r.target_type}</a>
+              <form method="POST" action="/api/admin/moderate">
+                <input type="hidden" name={csrfFieldName()} value={csrf} />
+                <input type="hidden" name="type" value="report" />
+                <input type="hidden" name="id" value={r.id} />
+                <button class="btn btn-primary btn-sm" name="action" value="reviewed">Mark reviewed</button>
+                <button class="btn btn-ghost btn-sm" name="action" value="dismiss">Dismiss</button>
+              </form>
+            </div>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</Base>
+<style>
+  .mod-list { list-style: none; padding: 0; }
+  .mod-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+  .mod-actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+  .mod-actions form { display: flex; gap: 0.4rem; }
+  .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+</style>

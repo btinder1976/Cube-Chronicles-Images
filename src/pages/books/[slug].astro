@@ -1,0 +1,312 @@
+---
+import Base from '../../layouts/Base.astro';
+import Cover from '../../components/Cover.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import FaqList from '../../components/FaqList.astro';
+import PrevNext from '../../components/PrevNext.astro';
+import Turnstile from '../../components/Turnstile.astro';
+import Flash from '../../components/Flash.astro';
+import { books, getBook, publicFaqs, series } from '../../lib/content';
+import { purchaseLinks, realOffers } from '../../lib/retailers';
+import { getApprovedQuestionsForBook, getApprovedResponses, safe } from '../../lib/community';
+import { tryEnv } from '../../lib/env';
+import { csrfFieldName } from '../../lib/csrf';
+
+const { slug } = Astro.params;
+const book = slug ? getBook(slug) : undefined;
+if (!book) return Astro.redirect('/books');
+
+const env = tryEnv(Astro.locals);
+const user = Astro.locals.user;
+const questions = env?.DB ? await safe(() => getApprovedQuestionsForBook(env, book.slug)) : [];
+const responsesByQ: Record<string, Awaited<ReturnType<typeof getApprovedResponses>>> = {};
+if (env?.DB) {
+  for (const q of questions) responsesByQ[q.id] = await safe(() => getApprovedResponses(env, q.id));
+}
+
+const links = purchaseLinks(book.slug);
+const offers = realOffers(book.slug);
+const faqPublic = publicFaqs(book.faqs);
+const csrf = Astro.cookies.get('cc_csrf')?.value ?? '';
+const siteUrl = (import.meta.env.SITE || 'https://cubechronicles.com').replace(/\/+$/, '');
+const canonical = book.url;
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Book',
+    name: book.title,
+    alternativeHeadline: book.subtitle || undefined,
+    position: book.number,
+    bookFormat: 'https://schema.org/Paperback',
+    numberOfPages: book.pageCount,
+    inLanguage: 'en',
+    url: siteUrl + book.url,
+    author: { '@type': 'Person', name: series.author },
+    isPartOf: { '@type': 'BookSeries', name: series.title, url: siteUrl + '/' },
+    about: [book.settingPlace, ...book.themes].filter(Boolean),
+    audience: { '@type': 'Audience', suggestedMinAge: 8, suggestedMaxAge: 12 },
+    description: book.premise,
+    ...(offers.length
+      ? { offers: offers.map((o) => ({ '@type': 'Offer', url: o.url, availability: 'https://schema.org/InStock' })) }
+      : {}),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: siteUrl + '/' },
+      { '@type': 'ListItem', position: 2, name: 'The Books', item: siteUrl + '/books/' },
+      { '@type': 'ListItem', position: 3, name: book.title, item: siteUrl + book.url },
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    // visible, spoiler-free editorial FAQs only
+    mainEntity: faqPublic.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+---
+<Base
+  title={`${book.title} — Book ${book.number} of 15`}
+  description={book.teaser}
+  canonicalPath={canonical}
+  ogType="book"
+  jsonLd={jsonLd}
+  modifiedTime="2026-07-14"
+>
+  <div class="container section book-page">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'The Books', href: '/books' }, { label: `Book ${book.number}` }]} />
+
+    <!-- HERO -->
+    <div class="book-hero">
+      <div class="book-hero-cover">
+        <span class="badge badge-book">Book {book.number} of 15</span>
+        <Cover book={book} loading="eager" fetchpriority="high" sizes="(max-width: 640px) 70vw, 320px" widths={[320,480,640,960]} />
+      </div>
+      <div class="book-hero-copy">
+        <h1>{book.title}</h1>
+        {book.subtitle && <p class="book-subtitle">{book.subtitle}</p>}
+        <p class="book-setting"><strong>{book.settingPlace}</strong> · {book.era}</p>
+        <p class="book-premise">{book.premise}</p>
+        <ul class="book-facts">
+          <li><span>Reading age</span><strong>{book.ageRange}</strong></li>
+          <li><span>Length</span><strong>{book.pageCount} pages</strong></li>
+          <li><span>Series order</span><strong>Book {book.number} of {series.bookCount}</strong></li>
+          <li><span>Region</span><strong>{book.settingRegion}</strong></li>
+        </ul>
+
+        <!-- Purchase -->
+        <div class="buy-box">
+          <p class="buy-label">Get the book</p>
+          <div class="buy-buttons">
+            {links.map((l) => l.placeholder ? (
+              <span class="btn btn-ghost buy-btn is-placeholder" aria-disabled="true" title="Retailer link coming soon">
+                {l.name} <em>(link coming soon)</em>
+              </span>
+            ) : (
+              <a class="btn btn-primary buy-btn" href={l.url!} rel="nofollow sponsored" target="_blank">{l.name}</a>
+            ))}
+          </div>
+          <p class="buy-note muted">Retailer links marked “coming soon” are placeholders until the official store links are published.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="book-body">
+      <div class="book-main">
+        <!-- What readers will discover -->
+        <section aria-labelledby="discover-h" class="book-section">
+          <h2 id="discover-h">What readers will discover</h2>
+          <ul class="discover-list">
+            {book.learningTopics.map((t) => (<li>{t}</li>))}
+          </ul>
+        </section>
+
+        <!-- Characters -->
+        {book.mainCharacters.length > 0 && (
+          <section aria-labelledby="chars-h" class="book-section">
+            <h2 id="chars-h">Main characters in this book</h2>
+            <dl class="char-list">
+              {book.mainCharacters.map((c) => (
+                <div><dt>{c.name}</dt><dd>{c.role}</dd></div>
+              ))}
+            </dl>
+          </section>
+        )}
+
+        <!-- Themes -->
+        <section aria-labelledby="themes-h" class="book-section">
+          <h2 id="themes-h">Themes & learning topics</h2>
+          <ul class="tags">{book.themes.map((t) => (<li class="pill">{t}</li>))}</ul>
+        </section>
+
+        <!-- Content guidance -->
+        {book.contentNotes && (
+          <section aria-labelledby="guid-h" class="book-section panel guidance">
+            <h2 id="guid-h">Guidance for parents & educators</h2>
+            <p>{book.contentNotes}</p>
+            <p class="muted">Recommended reading age: <strong>{book.ageRange}</strong>.</p>
+          </section>
+        )}
+
+        <!-- Editorial FAQ -->
+        <section aria-labelledby="faq-h" class="book-section" id="faq">
+          <h2 id="faq-h">Questions about this book</h2>
+          <p class="muted">Spoiler-free answers, drawn from the book itself. Spoiler answers are clearly marked and tucked behind a click.</p>
+          <FaqList faqs={book.faqs} idPrefix="faq" />
+        </section>
+
+        <!-- Community Q&A -->
+        <section aria-labelledby="community-h" class="book-section" id="community">
+          <h2 id="community-h">Reader questions & answers</h2>
+          <Flash />
+          {questions.length === 0 ? (
+            <p class="muted">No approved reader questions yet. Be the first to ask!</p>
+          ) : (
+            <ol class="community-list">
+              {questions.map((q) => (
+                <li class="community-q" id={`q-${q.slug}`}>
+                  <h3>{q.title}</h3>
+                  {q.body && <p class="cq-body">{q.body}</p>}
+                  <p class="cq-meta">Asked by {q.display_name}</p>
+                  {(responsesByQ[q.id] ?? []).length > 0 && (
+                    <ul class="response-list">
+                      {(responsesByQ[q.id] ?? []).map((r) => (
+                        <li>
+                          <span class="badge pill">{r.kind === 'answer' ? 'Answer' : 'Comment'}</span>
+                          <div class="response-body" set:html={r.body} />
+                          <p class="cq-meta">— {r.display_name}</p>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {user && user.emailVerified ? (
+                    <details class="reply-form">
+                      <summary>Reply to this question</summary>
+                      <form method="POST" action="/api/responses" class="stack">
+                        <input type="hidden" name={csrfFieldName()} value={csrf} />
+                        <input type="hidden" name="question_id" value={q.id} />
+                        <input type="hidden" name="book_slug" value={book.slug} />
+                        <label for={`reply-${q.id}`}>Your answer or comment</label>
+                        <textarea id={`reply-${q.id}`} name="body" maxlength="6000" required></textarea>
+                        <label class="radio-inline"><input type="radio" name="kind" value="answer" checked /> Answer</label>
+                        <label class="radio-inline"><input type="radio" name="kind" value="comment" /> Comment</label>
+                        <Turnstile />
+                        <button class="btn btn-secondary" type="submit">Submit for review</button>
+                        <p class="muted small">Submissions are reviewed by a moderator before appearing.</p>
+                      </form>
+                    </details>
+                  ) : null}
+                </li>
+              ))}
+            </ol>
+          )}
+
+          <!-- Ask a question -->
+          <div class="ask-box panel" id="ask">
+            <h3>Ask a question about this book</h3>
+            {user && user.emailVerified ? (
+              <form method="POST" action="/api/questions" class="stack">
+                <input type="hidden" name={csrfFieldName()} value={csrf} />
+                <input type="hidden" name="book_slug" value={book.slug} />
+                <div class="field">
+                  <label for="q-title">Your question</label>
+                  <input id="q-title" name="title" type="text" maxlength="140" required
+                    placeholder="e.g. Is this book okay for a sensitive 8-year-old?" />
+                </div>
+                <div class="field">
+                  <label for="q-body">Add detail (optional)</label>
+                  <textarea id="q-body" name="body" maxlength="4000"></textarea>
+                </div>
+                <Turnstile />
+                <button class="btn btn-primary" type="submit">Submit question for review</button>
+                <p class="muted small">You'll be subscribed to email updates when an answer is approved. You can unsubscribe anytime.</p>
+              </form>
+            ) : user ? (
+              <p class="alert alert-warn">Please <a href="/account">confirm your email</a> before posting.</p>
+            ) : (
+              <p class="alert alert-info">
+                <a href={`/login?next=${encodeURIComponent(book.url + '#ask')}`}>Sign in</a> or
+                <a href="/register"> create a free account</a> to ask a question. You never need an account to read.
+              </p>
+            )}
+          </div>
+        </section>
+      </div>
+
+      <!-- Sidebar -->
+      <aside class="book-aside">
+        <div class="panel aside-nav">
+          <h2>On this page</h2>
+          <ul>
+            <li><a href="#discover-h">What readers discover</a></li>
+            <li><a href="#chars-h">Characters</a></li>
+            <li><a href="#faq">Book FAQ</a></li>
+            <li><a href="#community">Reader Q&A</a></li>
+            <li><a href="#ask">Ask a question</a></li>
+          </ul>
+        </div>
+        {book.nextBookHook && (
+          <div class="panel aside-next">
+            <h2>What comes next</h2>
+            <p class="muted">{book.nextBookHook}</p>
+          </div>
+        )}
+      </aside>
+    </div>
+
+    <PrevNext prevSlug={book.prevSlug} nextSlug={book.nextSlug} />
+  </div>
+</Base>
+
+<style>
+  .book-hero { display: grid; grid-template-columns: 320px 1fr; gap: 2.5rem; align-items: start; margin: 1rem 0 2.5rem; }
+  .book-hero-cover { position: relative; }
+  .book-hero-cover .badge { position: absolute; top: 10px; left: 10px; z-index: 2; }
+  .book-subtitle { font-family: var(--font-sans); color: var(--gold-600); font-weight: 600; font-size: 1.05rem; margin-top: -0.4rem; }
+  .book-setting { font-size: 1rem; color: var(--ink-soft); }
+  .book-premise { font-size: 1.12rem; }
+  .book-facts { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin: 1.25rem 0; }
+  .book-facts li { display: flex; flex-direction: column; background: var(--parchment); border-radius: 8px; padding: 0.5rem 0.75rem; }
+  .book-facts span { font-family: var(--font-sans); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  .buy-box { margin-top: 1.25rem; border-top: 1px solid var(--border); padding-top: 1.25rem; }
+  .buy-label { font-family: var(--font-sans); font-weight: 700; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 0.5rem; }
+  .buy-buttons { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .buy-btn.is-placeholder { opacity: 0.6; cursor: not-allowed; }
+  .buy-btn.is-placeholder em { font-size: 0.78rem; font-style: normal; }
+  .buy-note { font-size: 0.82rem; margin-top: 0.6rem; }
+  @media (max-width: 720px) { .book-hero { grid-template-columns: 1fr; } .book-hero-cover { max-width: 260px; } .book-facts { grid-template-columns: 1fr 1fr; } }
+
+  .book-body { display: grid; grid-template-columns: 1fr 280px; gap: 2.5rem; align-items: start; }
+  @media (max-width: 900px) { .book-body { grid-template-columns: 1fr; } .book-aside { order: -1; } }
+  .book-section { margin-bottom: 2.5rem; scroll-margin-top: 90px; }
+  .discover-list { columns: 2; column-gap: 2rem; }
+  @media (max-width: 560px) { .discover-list { columns: 1; } }
+  .char-list > div { display: grid; grid-template-columns: 1fr; padding: 0.6rem 0; border-bottom: 1px dashed var(--border); }
+  .char-list dt { font-weight: 700; color: var(--indigo-900); }
+  .char-list dd { margin: 0.1rem 0 0; color: var(--ink-soft); font-size: 0.95rem; }
+  .guidance { background: var(--parchment); }
+
+  .community-list { list-style: none; padding: 0; }
+  .community-q { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; scroll-margin-top: 90px; }
+  .community-q h3 { margin: 0 0 0.4rem; }
+  .cq-body { color: var(--ink-soft); }
+  .cq-meta { font-family: var(--font-sans); font-size: 0.82rem; color: var(--muted); margin: 0.25rem 0; }
+  .response-list { list-style: none; padding: 0; margin: 1rem 0 0; border-top: 1px solid var(--border); }
+  .response-list li { padding: 0.75rem 0; border-bottom: 1px dashed var(--border); }
+  .response-body { margin: 0.35rem 0; }
+  .reply-form summary { cursor: pointer; font-family: var(--font-sans); font-size: 0.9rem; color: var(--link); margin-top: 0.5rem; }
+  .radio-inline { display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 500; margin-right: 1rem; }
+  .radio-inline input { width: auto; }
+  .ask-box { margin-top: 2rem; }
+  .small { font-size: 0.82rem; }
+  .aside-nav ul { list-style: none; padding: 0; margin: 0; font-family: var(--font-sans); font-size: 0.9rem; }
+  .aside-nav li { padding: 0.3rem 0; }
+  .book-aside .panel { margin-bottom: 1.25rem; position: sticky; top: 90px; }
+</style>

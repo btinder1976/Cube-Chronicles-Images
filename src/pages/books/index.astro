@@ -1,0 +1,123 @@
+---
+import Base from '../../layouts/Base.astro';
+import BookCard from '../../components/BookCard.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { books, series, facets } from '../../lib/content';
+
+// SSR so the region/era/theme filter links work without client JS.
+const url = new URL(Astro.request.url);
+const region = url.searchParams.get('region') || '';
+const era = url.searchParams.get('era') || '';
+const theme = url.searchParams.get('theme') || '';
+const f = facets();
+
+let filtered = books;
+if (region) filtered = filtered.filter((b) => b.settingRegion === region);
+if (era) filtered = filtered.filter((b) => b.eraTag === era);
+if (theme) filtered = filtered.filter((b) => b.themes.includes(theme));
+
+const anyFilter = region || era || theme;
+const siteUrl = (import.meta.env.SITE || 'https://cubechronicles.com').replace(/\/+$/, '');
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: 'The Books — The Cube Chronicles',
+  url: siteUrl + '/books/',
+  isPartOf: { '@type': 'WebSite', name: 'The Cube Chronicles', url: siteUrl + '/' },
+  about: { '@type': 'BookSeries', name: series.title, numberOfBooks: series.bookCount },
+};
+function chip(name: string, value: string, active: string, key: string) {
+  const params = new URLSearchParams(url.search);
+  if (active === value) params.delete(key);
+  else params.set(key, value);
+  const qs = params.toString();
+  return { href: qs ? `/books?${qs}` : '/books', active: active === value, name };
+}
+---
+<Base
+  title="The Books — All 15 Cube Chronicles in Reading Order"
+  description="Browse all 15 books of The Cube Chronicles in reading order. Filter by historical region, era, or theme. Each book is a self-contained time-travel adventure to a real ancient civilization."
+  canonicalPath="/books/"
+  jsonLd={jsonLd}
+>
+  <div class="container section">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'The Books' }]} />
+    <header class="books-head">
+      <p class="eyebrow">The complete series</p>
+      <h1>The Books</h1>
+      <p class="lede">All fifteen Cube Chronicles, in reading order. Each is a complete adventure to a real ancient civilization — but the family's story is richest read start to finish.</p>
+    </header>
+
+    <!-- Filters (crawlable links; work without JavaScript) -->
+    <section class="filters" aria-label="Filter books">
+      <div class="filter-row">
+        <span class="filter-label">Region</span>
+        <ul class="tags">
+          {f.regions.map((r) => { const c = chip(r, r, region, 'region'); return (
+            <li><a class:list={['pill', 'filter-chip', { active: c.active }]} href={c.href} aria-pressed={c.active}>{r}</a></li>
+          ); })}
+        </ul>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">Era</span>
+        <ul class="tags">
+          {f.eras.map((e) => { const c = chip(e, e, era, 'era'); return (
+            <li><a class:list={['pill', 'filter-chip', { active: c.active }]} href={c.href} aria-pressed={c.active}>{e}</a></li>
+          ); })}
+        </ul>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">Theme</span>
+        <ul class="tags">
+          {f.themes.slice(0, 12).map((t) => { const c = chip(t, t, theme, 'theme'); return (
+            <li><a class:list={['pill', 'filter-chip', { active: c.active }]} href={c.href} aria-pressed={c.active}>{t}</a></li>
+          ); })}
+        </ul>
+      </div>
+      {anyFilter && (
+        <p class="filter-status" role="status">
+          Showing {filtered.length} of {books.length} books. <a href="/books">Clear filters</a>
+        </p>
+      )}
+    </section>
+
+    {filtered.length > 0 ? (
+      <div class="grid books-grid">
+        {filtered.map((b, i) => (<BookCard book={b} loading={i < 5 ? 'eager' : 'lazy'} />))}
+      </div>
+    ) : (
+      <p class="no-results">No books match those filters. <a href="/books">Clear filters</a>.</p>
+    )}
+
+    <!-- Always-crawlable full list (defensive: ensures every book link exists without JS/filters) -->
+    <section class="all-books" aria-label="All books list">
+      <h2 class="visually-hidden">Complete list of all books</h2>
+      <ol class="book-index-list">
+        {books.map((b) => (
+          <li><a href={b.url}><strong>Book {b.number}:</strong> {b.title} <span class="bi-setting">— {b.settingRegion}</span></a></li>
+        ))}
+      </ol>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .books-head { margin-bottom: 1.5rem; }
+  .lede { font-size: 1.15rem; max-width: 46rem; }
+  .filters { background: var(--parchment); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 2rem; }
+  .filter-row { display: grid; grid-template-columns: 5rem 1fr; gap: 0.75rem; align-items: baseline; padding: 0.4rem 0; }
+  .filter-label { font-family: var(--font-sans); font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  .filter-chip { text-decoration: none; }
+  .filter-chip.active { background: var(--indigo-800); color: var(--gold-300); border-color: var(--indigo-800); }
+  .filter-status { font-family: var(--font-sans); font-size: 0.9rem; margin: 0.5rem 0 0; }
+  .books-grid { grid-template-columns: repeat(5, 1fr); }
+  @media (max-width: 1000px) { .books-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 640px) { .books-grid { grid-template-columns: repeat(2, 1fr); } .filter-row { grid-template-columns: 1fr; } }
+  .all-books { margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 1.5rem; }
+  .book-index-list { columns: 2; column-gap: 2rem; font-family: var(--font-sans); font-size: 0.92rem; }
+  @media (max-width: 640px) { .book-index-list { columns: 1; } }
+  .book-index-list a { text-decoration: none; color: var(--ink-soft); }
+  .book-index-list a:hover { color: var(--link); }
+  .bi-setting { color: var(--muted); }
+  .no-results { padding: 2rem; text-align: center; }
+</style>

@@ -1,0 +1,67 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+export const prerender = true;
+---
+<Base
+  title="Privacy Policy — The Cube Chronicles"
+  description="How The Cube Chronicles website collects, uses, and protects your information, including account email, discussion notifications, and analytics."
+  canonicalPath="/privacy"
+>
+  <div class="container-narrow section legal">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Privacy Policy' }]} />
+    <h1>Privacy Policy</h1>
+    <p class="muted"><strong>Starter template — last updated 14 July 2026.</strong> This is a good-faith starting point and must be reviewed by a qualified attorney before launch. It is not legal advice.</p>
+
+    <h2>Who we are</h2>
+    <p>This website is the official home of <em>The Cube Chronicles</em> book series. For privacy questions, contact us via the <a href="/contact">contact page</a>.</p>
+
+    <h2>What we collect</h2>
+    <p>You can read the entire site without an account. If you choose to register to take part in discussions, we collect only:</p>
+    <ul>
+      <li>a <strong>display name</strong> you choose (shown publicly next to your posts);</li>
+      <li>your <strong>email address</strong> (never shown publicly);</li>
+      <li>a securely hashed <strong>password</strong> (we never store your password in readable form);</li>
+      <li>a <strong>consent timestamp</strong> recording when you agreed to receive required account and discussion emails;</li>
+      <li>your <strong>notification preferences</strong>;</li>
+      <li>limited technical data (e.g., IP address and browser) used for security, abuse prevention, and rate limiting.</li>
+    </ul>
+
+    <h2>How we use your information</h2>
+    <p>We use your email address <strong>only</strong> to:</p>
+    <ul>
+      <li>verify your account;</li>
+      <li>send the discussion notifications you have asked for (for example, when an answer to your question is approved);</li>
+      <li>send essential account or security messages.</li>
+    </ul>
+    <p>We do <strong>not</strong> sell your data, and we do not display email addresses publicly. Every notification email includes an unsubscribe link.</p>
+
+    <h2>Content you post</h2>
+    <p>Questions, answers, and comments are reviewed by a moderator before they appear publicly. Approved content is shown with your display name. You can request removal of your content via the contact page.</p>
+
+    <h2>Cookies & analytics</h2>
+    <p>We use a small number of strictly necessary cookies for sign-in sessions and security (see our <a href="/cookies">Cookie &amp; Analytics Notice</a>). If privacy-friendly analytics are enabled, they are configured without cross-site tracking.</p>
+
+    <h2>Data retention & your rights</h2>
+    <p>You may request access to, correction of, or deletion of your account and personal data at any time via the <a href="/contact">contact page</a>. Depending on where you live, you may have additional rights under laws such as the GDPR or CCPA. We honor unsubscribe and deletion requests promptly.</p>
+
+    <h2>Children</h2>
+    <p>This site is designed for parents, educators, librarians, and readers who can lawfully register. We do not knowingly collect birth dates or personal information from children. See the note on our <a href="/terms">Terms of Use</a> about minimum-age and parental consent, which the site owner will finalize based on legal review.</p>
+
+    <h2>Security</h2>
+    <p>Passwords are hashed, sessions are protected with secure, HttpOnly cookies, forms are protected against bots and cross-site request forgery, and all user content is sanitized before display.</p>
+
+    <h2>Changes</h2>
+    <p>We may update this policy. Material changes will be noted here with a new “last updated” date.</p>
+
+    <div class="alert alert-warn owner-note">
+      <strong>Owner checklist:</strong> Replace the contact details, confirm your legal entity and jurisdiction, set your minimum-age/parental-consent stance, confirm your analytics choice, and have this reviewed by an attorney before you launch. Do not claim compliance with any specific law without that review.
+    </div>
+  </div>
+</Base>
+
+<style>
+  .legal h2 { margin-top: 2rem; }
+  .legal ul { padding-left: 1.2rem; }
+  .owner-note { margin-top: 2.5rem; }
+</style>

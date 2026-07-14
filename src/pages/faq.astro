@@ -1,0 +1,61 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import FaqList from '../components/FaqList.astro';
+import { seriesFaqs, publicFaqs, books } from '../lib/content';
+
+export const prerender = true;
+
+const faqPublic = publicFaqs(seriesFaqs);
+const siteUrl = (import.meta.env.SITE || 'https://cubechronicles.com').replace(/\/+$/, '');
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqPublic.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
+---
+<Base
+  title="Series FAQ — The Cube Chronicles"
+  description="Answers to common questions about The Cube Chronicles: reading order, age range, historical accuracy, faith themes, classroom use, and where to start."
+  canonicalPath="/faq"
+  jsonLd={jsonLd}
+  modifiedTime="2026-07-14"
+>
+  <div class="container-narrow section">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Series FAQ' }]} />
+    <header class="stack">
+      <p class="eyebrow">Everything you need to know</p>
+      <h1>Series FAQ</h1>
+      <p class="lede">Answers about reading order, ages, history, faith themes, and how to get the most out of the series. Looking for a specific book? Each book page has its own detailed FAQ.</p>
+    </header>
+
+    <FaqList faqs={seriesFaqs} idPrefix="faq" />
+
+    <section class="faq-cta panel">
+      <h2>Have a different question?</h2>
+      <p>Registered readers can ask about any book on that book's page. Browse the books to find the right discussion.</p>
+      <p><a class="btn btn-primary" href="/books">Browse the books</a> <a class="btn btn-ghost" href="/ask">Ask a question</a></p>
+    </section>
+
+    <nav class="per-book-faq" aria-label="Per-book FAQs">
+      <h2>Book-by-book FAQs</h2>
+      <ul class="book-faq-links">
+        {books.map((b) => (<li><a href={`${b.url}#faq`}>Book {b.number}: {b.title}</a></li>))}
+      </ul>
+    </nav>
+  </div>
+</Base>
+
+<style>
+  .lede { font-size: 1.15rem; }
+  .faq-cta { margin: 2.5rem 0; background: var(--parchment); }
+  .per-book-faq { margin-top: 2rem; }
+  .book-faq-links { columns: 2; column-gap: 2rem; list-style: none; padding: 0; font-family: var(--font-sans); font-size: 0.92rem; }
+  .book-faq-links a { text-decoration: none; color: var(--ink-soft); }
+  .book-faq-links a:hover { color: var(--link); }
+  @media (max-width: 600px) { .book-faq-links { columns: 1; } }
+</style>

@@ -1,0 +1,81 @@
+---
+const user = Astro.locals.user;
+const path = new URL(Astro.request.url).pathname;
+const nav = [
+  { href: '/', label: 'Home' },
+  { href: '/books', label: 'The Books' },
+  { href: '/faq', label: 'Series FAQ' },
+  { href: '/ask', label: 'Ask a Question' },
+  { href: '/about', label: 'About' },
+];
+const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+---
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="/" class="brand" aria-label="The Cube Chronicles — home">
+      <span class="brand-cube" aria-hidden="true"></span>
+      <span class="brand-text">
+        <strong>The Cube Chronicles</strong>
+        <small>A 15-book time-travel adventure</small>
+      </span>
+    </a>
+
+    <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true" />
+    <label for="nav-toggle" class="nav-toggle-btn" aria-label="Toggle navigation menu">
+      <span></span><span></span><span></span>
+    </label>
+
+    <nav class="site-nav" aria-label="Primary">
+      <ul>
+        {nav.map((n) => (
+          <li>
+            <a href={n.href} aria-current={isActive(n.href) ? 'page' : undefined}>{n.label}</a>
+          </li>
+        ))}
+        {user ? (
+          <li class="nav-account"><a href="/account">Account</a></li>
+        ) : (
+          <li class="nav-account"><a href="/login">Sign in</a></li>
+        )}
+        <li><a class="btn btn-primary btn-nav" href="/books">Explore the Books</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    background: linear-gradient(180deg, var(--indigo-900), var(--indigo-800));
+    color: var(--cream);
+    position: sticky; top: 0; z-index: 50;
+    border-bottom: 2px solid var(--gold-600);
+  }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 0.7rem; }
+  .brand { display: flex; align-items: center; gap: 0.7rem; color: var(--cream); text-decoration: none; }
+  .brand-cube {
+    width: 26px; height: 26px; border-radius: 5px; flex: none;
+    background: conic-gradient(from 45deg, var(--gold-400), var(--gold-600), var(--gold-300), var(--gold-500));
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,.25), 0 0 14px -2px var(--gold-400);
+    transform: rotate(12deg);
+  }
+  .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+  .brand-text strong { font-size: 1.1rem; letter-spacing: 0.01em; }
+  .brand-text small { font-family: var(--font-sans); font-size: 0.72rem; color: var(--gold-300); }
+  .site-nav ul { list-style: none; display: flex; align-items: center; gap: 0.25rem; margin: 0; padding: 0; }
+  .site-nav a { color: var(--cream); text-decoration: none; font-family: var(--font-sans); font-size: 0.95rem; padding: 0.5rem 0.7rem; border-radius: 6px; display: inline-block; }
+  .site-nav a[aria-current='page'] { color: var(--gold-300); }
+  .site-nav a:hover { background: rgba(255,255,255,0.08); color: #fff; }
+  .btn-nav { padding: 0.5rem 0.9rem; }
+  .nav-toggle, .nav-toggle-btn { display: none; }
+
+  @media (max-width: 860px) {
+    .nav-toggle-btn { display: inline-flex; flex-direction: column; gap: 4px; background: none; border: 0; cursor: pointer; padding: 0.4rem; }
+    .nav-toggle-btn span { width: 24px; height: 2px; background: var(--gold-300); border-radius: 2px; }
+    .site-nav { display: none; width: 100%; }
+    .header-inner { flex-wrap: wrap; }
+    .nav-toggle:checked ~ .site-nav { display: block; }
+    .site-nav ul { flex-direction: column; align-items: stretch; gap: 0.1rem; padding-bottom: 0.75rem; }
+    .site-nav a { padding: 0.7rem 0.5rem; }
+    .btn-nav { text-align: center; margin-top: 0.4rem; }
+  }
+</style>

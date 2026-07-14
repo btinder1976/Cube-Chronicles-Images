@@ -1,0 +1,127 @@
+---
+import Base from '../../layouts/Base.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import Flash from '../../components/Flash.astro';
+import { getEnv } from '../../lib/env';
+import { csrfFieldName } from '../../lib/csrf';
+import { getBook } from '../../lib/content';
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/login?next=/account&msg=needlogin');
+const env = getEnv(Astro.locals);
+const csrf = Astro.cookies.get('cc_csrf')?.value ?? '';
+
+const myQuestions = (
+  await env.DB.prepare(
+    `SELECT id, title, slug, book_slug, status, created_at FROM questions
+     WHERE user_id = ? AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 100`
+  ).bind(user.id).all<{ id: string; title: string; slug: string; book_slug: string | null; status: string; created_at: string }>()
+).results ?? [];
+
+const mySubs = (
+  await env.DB.prepare(
+    `SELECT s.id, s.status, s.unsubscribe_token, q.title as question_title, q.slug as question_slug, q.book_slug
+     FROM subscriptions s JOIN questions q ON q.id = s.question_id
+     WHERE s.user_id = ? ORDER BY s.created_at DESC LIMIT 200`
+  ).bind(user.id).all<{ id: string; status: string; unsubscribe_token: string; question_title: string; question_slug: string; book_slug: string | null }>()
+).results ?? [];
+---
+<Base
+  title="Your account — The Cube Chronicles"
+  description="Manage your Cube Chronicles account, submissions, and notification subscriptions."
+  canonicalPath="/account"
+  noindex={true}
+>
+  <div class="container section">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Account' }]} />
+    <div class="account-head">
+      <div>
+        <h1>Your account</h1>
+        <p class="muted">Signed in as <strong>{user.displayName}</strong> ({user.email})
+          {user.emailVerified ? <span class="badge badge-status-approved">Email confirmed</span> : <span class="badge badge-status-pending">Email not confirmed</span>}
+          {user.role === 'admin' && <span class="badge badge-book">Admin</span>}
+        </p>
+      </div>
+      <form method="POST" action="/api/logout">
+        <input type="hidden" name={csrfFieldName()} value={csrf} />
+        <button class="btn btn-ghost" type="submit">Sign out</button>
+      </form>
+    </div>
+    <Flash />
+
+    {!user.emailVerified && (
+      <div class="alert alert-warn">
+        Your email isn't confirmed yet, so you can't post. Check your inbox for the confirmation link, or
+        <form method="POST" action="/api/resend-verification" style="display:inline">
+          <input type="hidden" name={csrfFieldName()} value={csrf} />
+          <button class="linkbtn" type="submit">resend it</button>.
+        </form>
+      </div>
+    )}
+
+    {user.role === 'admin' && (
+      <p><a class="btn btn-secondary" href="/admin">Open the moderation dashboard →</a></p>
+    )}
+
+    <section class="acct-section">
+      <h2>Your questions</h2>
+      {myQuestions.length === 0 ? (
+        <p class="muted">You haven't asked any questions yet. <a href="/books">Find a book to discuss.</a></p>
+      ) : (
+        <ul class="acct-list">
+          {myQuestions.map((q) => (
+            <li>
+              <span class={`badge badge-status-${q.status}`}>{q.status}</span>
+              {q.status === 'approved' && q.book_slug ? (
+                <a href={`/books/${q.book_slug}/#q-${q.slug}`}>{q.title}</a>
+              ) : (
+                <span>{q.title}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+
+    <section class="acct-section">
+      <h2>Your notification subscriptions</h2>
+      {mySubs.length === 0 ? (
+        <p class="muted">You aren't subscribed to any discussions yet.</p>
+      ) : (
+        <ul class="acct-list">
+          {mySubs.map((s) => (
+            <li class="sub-row">
+              <span>
+                {s.book_slug ? <a href={`/books/${s.book_slug}/#q-${s.question_slug}`}>{s.question_title}</a> : s.question_title}
+                {s.status !== 'active' && <span class="badge pill">unsubscribed</span>}
+              </span>
+              {s.status === 'active' && (
+                <a class="linklike" href={`/unsubscribe?token=${encodeURIComponent(s.unsubscribe_token)}`}>Unsubscribe</a>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+
+    <section class="acct-section">
+      <h2>Notification preference</h2>
+      <form method="POST" action="/api/preferences" class="stack">
+        <input type="hidden" name={csrfFieldName()} value={csrf} />
+        <label class="checkbox"><input type="checkbox" name="notify" value="1" /> Automatically follow discussions I post in.</label>
+        <button class="btn btn-ghost" type="submit">Save preference</button>
+      </form>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .account-head { display: flex; justify-content: space-between; align-items: start; gap: 1rem; flex-wrap: wrap; }
+  .acct-section { margin-top: 2rem; }
+  .acct-list { list-style: none; padding: 0; }
+  .acct-list li { padding: 0.6rem 0; border-bottom: 1px solid var(--border); display: flex; gap: 0.6rem; align-items: center; }
+  .sub-row { justify-content: space-between; }
+  .linkbtn, .linklike { background: none; border: none; color: var(--link); cursor: pointer; font: inherit; text-decoration: underline; padding: 0; }
+  .checkbox { display: flex; gap: 0.5rem; align-items: center; }
+  .checkbox input { width: auto; }
+</style>

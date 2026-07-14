@@ -1,0 +1,75 @@
+---
+import Base from '../../layouts/Base.astro';
+import AdminNav from '../../components/AdminNav.astro';
+import Flash from '../../components/Flash.astro';
+import { getEnv } from '../../lib/env';
+import { requireAdmin } from '../../lib/admin';
+import { csrfFieldName } from '../../lib/csrf';
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/login?next=/admin/responses&msg=needlogin');
+if (!requireAdmin(user)) return Astro.redirect('/account?err=forbidden');
+const env = getEnv(Astro.locals);
+const csrf = Astro.cookies.get('cc_csrf')?.value ?? '';
+const status = new URL(Astro.request.url).searchParams.get('status') || 'pending';
+const valid = ['pending', 'approved', 'rejected'];
+const filter = valid.includes(status) ? status : 'pending';
+
+const rows = (
+  await env.DB.prepare(
+    `SELECT r.id, r.body, r.kind, r.status, r.created_at, u.display_name, u.email,
+            q.title as question_title, q.book_slug
+     FROM responses r JOIN users u ON u.id = r.user_id JOIN questions q ON q.id = r.question_id
+     WHERE r.status = ? AND r.deleted_at IS NULL ORDER BY r.created_at DESC LIMIT 200`
+  ).bind(filter).all<any>()
+).results ?? [];
+---
+<Base title="Admin · Responses" description="Moderate responses." canonicalPath="/admin/responses" noindex={true}>
+  <div class="container section">
+    <AdminNav active="responses" />
+    <Flash />
+    <h1>Responses</h1>
+    <p class="muted small">Approving a response emails all active subscribers of its question (except the author) and logs each delivery.</p>
+    <nav class="status-tabs">
+      {valid.map((s) => (<a class:list={['pill', { active: s === filter }]} href={`/admin/responses?status=${s}`}>{s}</a>))}
+    </nav>
+    {rows.length === 0 ? <p class="muted">No {filter} responses.</p> : (
+      <ul class="mod-list">
+        {rows.map((r) => (
+          <li class="mod-item">
+            <div class="mod-head">
+              <span class={`badge badge-status-${r.status}`}>{r.status}</span>
+              <span class="badge pill">{r.kind}</span>
+              <span class="mod-meta">on “{r.question_title}” · by {r.display_name} · {new Date(r.created_at).toLocaleString()}</span>
+            </div>
+            <form method="POST" action="/api/admin/moderate">
+              <input type="hidden" name={csrfFieldName()} value={csrf} />
+              <input type="hidden" name="type" value="response" />
+              <input type="hidden" name="id" value={r.id} />
+              <textarea name="body" rows="3">{r.body}</textarea>
+              <div class="mod-actions">
+                <button class="btn btn-primary btn-sm" name="action" value="approve">Approve & notify</button>
+                <button class="btn btn-ghost btn-sm" name="action" value="edit">Save edit</button>
+                <button class="btn btn-ghost btn-sm" name="action" value="reject">Reject</button>
+                <button class="btn btn-ghost btn-sm danger" name="action" value="delete">Delete</button>
+              </div>
+            </form>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</Base>
+<style>
+  .status-tabs { display: flex; gap: 0.4rem; margin: 1rem 0 1.5rem; }
+  .status-tabs .active { background: var(--indigo-800); color: var(--gold-300); border-color: var(--indigo-800); text-decoration: none; }
+  .status-tabs .pill { text-decoration: none; }
+  .mod-list { list-style: none; padding: 0; }
+  .mod-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin-bottom: 1rem; }
+  .mod-head { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.6rem; }
+  .mod-meta { font-family: var(--font-sans); font-size: 0.8rem; color: var(--muted); }
+  .mod-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.5rem; }
+  .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
+  .btn-sm.danger { color: var(--error-fg); border-color: var(--error-fg); }
+  .small { font-size: 0.85rem; }
+</style>

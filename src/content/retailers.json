@@ -1,0 +1,9 @@
+{
+  "_comment": "Editable purchase links. Until the owner supplies real retailer URLs, entries with \"placeholder\": true render as clearly-marked, disabled buttons and are OMITTED from Book structured-data offers. To publish a real link, set url and placeholder:false for that book+retailer.",
+  "retailers": [
+    { "key": "amazon", "name": "Amazon" },
+    { "key": "barnesnoble", "name": "Barnes & Noble" },
+    { "key": "bookshop", "name": "Bookshop.org" }
+  ],
+  "byBook": {}
+}

@@ -1,0 +1,31 @@
+---
+import Base from '../layouts/Base.astro';
+import { getEnv } from '../lib/env';
+import { unsubscribeByToken } from '../lib/notify';
+
+const token = new URL(Astro.request.url).searchParams.get('token') || '';
+let ok = false;
+try {
+  const env = getEnv(Astro.locals);
+  ok = token ? await unsubscribeByToken(env, token) : false;
+} catch {
+  ok = false;
+}
+---
+<Base
+  title="Unsubscribe — The Cube Chronicles"
+  description="Manage your discussion email notifications."
+  canonicalPath="/unsubscribe"
+  noindex={true}
+>
+  <div class="container-narrow section center">
+    <p class="eyebrow">Notifications</p>
+    <h1>Unsubscribe</h1>
+    <div class={`alert ${ok ? 'alert-success' : 'alert-warn'}`} role="status">
+      {ok
+        ? 'Done — you have been unsubscribed from this discussion and will no longer receive emails about it.'
+        : 'This unsubscribe link is invalid or was already used. You can manage all your notifications from your account.'}
+    </div>
+    <p><a class="btn btn-ghost" href="/account">Manage notifications</a> <a class="btn btn-ghost" href="/books">Browse the books</a></p>
+  </div>
+</Base>

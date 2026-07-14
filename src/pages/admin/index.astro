@@ -1,0 +1,49 @@
+---
+import Base from '../../layouts/Base.astro';
+import AdminNav from '../../components/AdminNav.astro';
+import Flash from '../../components/Flash.astro';
+import { getEnv } from '../../lib/env';
+import { requireAdmin, dashboardCounts } from '../../lib/admin';
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/login?next=/admin&msg=needlogin');
+if (!requireAdmin(user)) return Astro.redirect('/account?err=forbidden');
+
+const env = getEnv(Astro.locals);
+const counts = await dashboardCounts(env);
+const cards = [
+  { label: 'Pending questions', value: counts.pendingQuestions, href: '/admin/questions', urgent: counts.pendingQuestions > 0 },
+  { label: 'Pending responses', value: counts.pendingResponses, href: '/admin/responses', urgent: counts.pendingResponses > 0 },
+  { label: 'Open reports', value: counts.openReports, href: '/admin/reports', urgent: counts.openReports > 0 },
+  { label: 'Failed notifications', value: counts.failedNotifications, href: '/admin/notifications', urgent: counts.failedNotifications > 0 },
+  { label: 'Registered users', value: counts.users, href: '/admin/users', urgent: false },
+  { label: 'Approved questions', value: counts.approvedQuestions, href: '/admin/questions?status=approved', urgent: false },
+];
+---
+<Base title="Admin Dashboard — The Cube Chronicles" description="Moderation dashboard." canonicalPath="/admin" noindex={true}>
+  <div class="container section">
+    <AdminNav active="dashboard" />
+    <Flash />
+    <h1>Dashboard</h1>
+    <p class="muted">Signed in as {user.displayName} (admin).</p>
+    <div class="grid dash-grid">
+      {cards.map((c) => (
+        <a class:list={['panel dash-card', { urgent: c.urgent }]} href={c.href}>
+          <span class="dash-value">{c.value}</span>
+          <span class="dash-label">{c.label}</span>
+        </a>
+      ))}
+    </div>
+    <p class="muted small">Data lives in your Cloudflare D1 database <code>cubechronicles</code>. You can also query it directly or export it from the <a href="/admin/exports">Exports</a> tab.</p>
+  </div>
+</Base>
+<style>
+  .dash-grid { grid-template-columns: repeat(3, 1fr); margin-top: 1.5rem; }
+  @media (max-width: 720px) { .dash-grid { grid-template-columns: repeat(2, 1fr); } }
+  .dash-card { display: flex; flex-direction: column; text-decoration: none; color: inherit; }
+  .dash-card:hover { border-color: var(--gold-400); }
+  .dash-card.urgent { border-color: var(--gold-500); background: var(--warn-bg); }
+  .dash-value { font-size: 2.4rem; font-weight: 700; color: var(--indigo-900); line-height: 1; }
+  .dash-label { font-family: var(--font-sans); font-size: 0.9rem; color: var(--muted); margin-top: 0.35rem; }
+  .small { font-size: 0.85rem; margin-top: 1.5rem; }
+</style>

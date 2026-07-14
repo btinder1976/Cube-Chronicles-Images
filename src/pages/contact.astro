@@ -1,0 +1,48 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import Turnstile from '../components/Turnstile.astro';
+import Flash from '../components/Flash.astro';
+import { csrfFieldName } from '../lib/csrf';
+const csrf = Astro.cookies.get('cc_csrf')?.value ?? '';
+---
+<Base
+  title="Contact — The Cube Chronicles"
+  description="Get in touch about The Cube Chronicles — questions, permissions, retailer links, accessibility, or privacy requests."
+  canonicalPath="/contact"
+>
+  <div class="container-narrow section">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Contact' }]} />
+    <h1>Contact</h1>
+    <p class="lede">Questions about the series, permissions, accessibility, or a privacy request? Send a note below.</p>
+    <Flash />
+    <form method="POST" action="/api/contact" class="panel stack contact-form">
+      <input type="hidden" name={csrfFieldName()} value={csrf} />
+      <div class="field">
+        <label for="c-name">Your name</label>
+        <input id="c-name" name="name" type="text" maxlength="80" required />
+      </div>
+      <div class="field">
+        <label for="c-email">Your email</label>
+        <input id="c-email" name="email" type="email" maxlength="254" required />
+        <p class="hint">Used only to reply to you.</p>
+      </div>
+      <div class="field">
+        <label for="c-message">Message</label>
+        <textarea id="c-message" name="message" maxlength="4000" required></textarea>
+      </div>
+      <!-- honeypot -->
+      <div class="hp" aria-hidden="true"><label>Leave this empty<input type="text" name="website" tabindex="-1" autocomplete="off" /></label></div>
+      <Turnstile />
+      <button class="btn btn-primary" type="submit">Send message</button>
+    </form>
+    <p class="muted small">For account help, you can also manage notifications in your <a href="/account">account</a>.</p>
+  </div>
+</Base>
+
+<style>
+  .lede { font-size: 1.1rem; }
+  .contact-form { margin-top: 1.5rem; }
+  .hp { position: absolute; left: -9999px; }
+  .small { font-size: 0.85rem; margin-top: 1rem; }
+</style>

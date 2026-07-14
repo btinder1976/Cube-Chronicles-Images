@@ -1,0 +1,40 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import Turnstile from '../components/Turnstile.astro';
+import Flash from '../components/Flash.astro';
+import { csrfFieldName } from '../lib/csrf';
+const user = Astro.locals.user;
+const next = new URL(Astro.request.url).searchParams.get('next') || '/account';
+if (user) return Astro.redirect(next.startsWith('/') ? next : '/account');
+const csrf = Astro.cookies.get('cc_csrf')?.value ?? '';
+---
+<Base
+  title="Sign in — The Cube Chronicles"
+  description="Sign in to your Cube Chronicles account to ask and answer questions."
+  canonicalPath="/login"
+  noindex={true}
+>
+  <div class="container-narrow section">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Sign in' }]} />
+    <h1>Sign in</h1>
+    <Flash />
+    <form method="POST" action="/api/login" class="panel stack">
+      <input type="hidden" name={csrfFieldName()} value={csrf} />
+      <input type="hidden" name="next" value={next.startsWith('/') ? next : '/account'} />
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" required maxlength="254" autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" required maxlength="200" autocomplete="current-password" />
+      </div>
+      <Turnstile />
+      <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+    </form>
+    <p class="muted center signin-link">New here? <a href="/register">Create a free account</a>.</p>
+  </div>
+</Base>
+
+<style>.signin-link { margin-top: 1.25rem; }</style>

@@ -1,0 +1,292 @@
+---
+import Base from '../layouts/Base.astro';
+import BookCard from '../components/BookCard.astro';
+import { books, series, seriesFaqs, publicFaqs } from '../lib/content';
+import { getLatestApprovedQuestions, safe } from '../lib/community';
+import { tryEnv } from '../lib/env';
+
+const env = tryEnv(Astro.locals);
+const latest = env?.DB ? await safe(() => getLatestApprovedQuestions(env, 4)) : [];
+const homeFaqs = publicFaqs(seriesFaqs).slice(0, 6);
+const book1 = books[0];
+
+// Group settings by broad region for the "journey through the ancient world" map
+const journey = series.settingsInOrder;
+
+const siteUrl = (import.meta.env.SITE || 'https://cubechronicles.com').replace(/\/+$/, '');
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'The Cube Chronicles',
+    url: siteUrl + '/',
+    inLanguage: 'en',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${siteUrl}/books?q={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BookSeries',
+    name: series.title,
+    numberOfBooks: series.bookCount,
+    author: { '@type': 'Person', name: series.author },
+    inLanguage: 'en',
+    url: siteUrl + '/',
+    description: series.shortDescription,
+    hasPart: books.map((b) => ({
+      '@type': 'Book',
+      position: b.number,
+      name: b.title,
+      url: siteUrl + b.url,
+    })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: homeFaqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+];
+---
+<Base
+  title="The Cube Chronicles — A 15-Book Historical Time-Travel Adventure"
+  description="Three siblings find a mysterious cube beneath their shed that carries them across the ancient world — from the Great Pyramid to the Silk Road. A 15-book middle-grade time-travel series by Jeremy Tinder."
+  canonicalPath="/"
+  jsonLd={jsonLd}
+>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">A 15-book middle-grade series</p>
+        <h1>History is a door. The cube is the key.</h1>
+        <p class="hero-lede">
+          When the Carver children pry up the floorboards of an old backyard shed, they find a strange nine-sided
+          cube — and it carries them, one civilization at a time, across the entire ancient world. From the building
+          of the Great Pyramid to the crossroads of the Silk Road, <strong>The Cube Chronicles</strong> is a
+          time-travel adventure about family, craft, courage, and coming home.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="/books">Explore the Books</a>
+          <a class="btn btn-ghost hero-ghost" href={book1.url}>Start with Book One</a>
+        </div>
+        <p class="hero-meta">15 books · ages {series.ageRange} · by {series.author}</p>
+      </div>
+      <div class="hero-covers" aria-hidden="true">
+        {books.slice(0, 3).map((b, i) => (
+          <div class={`hero-cover hc-${i}`}>
+            <BookCard book={b} loading={i === 0 ? 'eager' : 'lazy'} />
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- SERIES SUMMARY -->
+  <section class="section series-summary">
+    <div class="container-narrow center">
+      <p class="eyebrow">The story</p>
+      <h2>One family. Fifteen years. The whole ancient world.</h2>
+      <p class="lede">{series.shortDescription}</p>
+      <p class="muted">{series.premise}</p>
+      <p><a class="btn btn-ghost" href="/about">About the series →</a></p>
+    </div>
+  </section>
+
+  <!-- BOOKSHELF -->
+  <section class="section bookshelf" id="books">
+    <div class="container">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">The complete series</p>
+          <h2>The bookshelf</h2>
+        </div>
+        <a class="btn btn-ghost" href="/books">All 15 books & filters →</a>
+      </div>
+      <div class="grid bookshelf-grid">
+        {books.map((b, i) => (<BookCard book={b} loading={i < 4 ? 'eager' : 'lazy'} />))}
+      </div>
+    </div>
+  </section>
+
+  <!-- START WITH BOOK ONE -->
+  <section class="section start-one">
+    <div class="container start-one-inner">
+      <div class="start-one-cover"><BookCard book={book1} /></div>
+      <div class="start-one-copy">
+        <p class="eyebrow">New here?</p>
+        <h2>Start with Book One</h2>
+        <p>{book1.premise}</p>
+        <p class="muted">{book1.settingPlace} · {book1.ageRange}</p>
+        <a class="btn btn-primary" href={book1.url}>Open Book One →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- JOURNEY THROUGH THE ANCIENT WORLD -->
+  <section class="section journey">
+    <div class="container">
+      <p class="eyebrow center">Follow the map</p>
+      <h2 class="center">A journey through the ancient world</h2>
+      <p class="center muted journey-intro">Each book crosses to a real historical civilization. Here is the road, in reading order.</p>
+      <ol class="journey-list">
+        {journey.map((s) => (
+          <li>
+            <a href={books[s.book - 1].url}>
+              <span class="journey-num">{s.book}</span>
+              <span class="journey-place">{s.place}</span>
+              <span class="journey-era">{s.era}</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- THEMES -->
+  <section class="section themes">
+    <div class="container-narrow center">
+      <p class="eyebrow">What the series is about</p>
+      <h2>Themes that run through every crossing</h2>
+      <ul class="tags center-tags">
+        {series.themes.map((t) => (<li class="pill">{t}</li>))}
+      </ul>
+      <p class="muted themes-note">
+        The Carver family's faith is woven warmly through the series. A guiding presence they call
+        “the Maker” is spoken of with reverence but is never depicted as a character — a restraint we
+        keep across the whole site.
+      </p>
+    </div>
+  </section>
+
+  <!-- PARENTS & EDUCATORS -->
+  <section class="section parents">
+    <div class="container parents-grid">
+      <div>
+        <p class="eyebrow">For parents, educators & librarians</p>
+        <h2>Real history, family-friendly adventure</h2>
+        <p>
+          The Cube Chronicles is written for middle-grade readers (about ages 8–12) and enjoyed as a family
+          read-aloud. Every destination is grounded in a real civilization, with authentic detail about how
+          people built, farmed, wrote, healed, traded, and made music. There's no graphic violence, no profanity,
+          and no romance — just adventure, curiosity, and heart.
+        </p>
+        <p>
+          <a class="btn btn-ghost" href="/faq">Read the Series FAQ</a>
+          <a class="btn btn-ghost" href="/series-facts">See the series facts</a>
+        </p>
+      </div>
+      <aside class="panel parents-panel">
+        <h3>At a glance</h3>
+        <dl>
+          <div><dt>Books</dt><dd>{series.bookCount}</dd></div>
+          <div><dt>Age range</dt><dd>{series.ageRange}</dd></div>
+          <div><dt>Author</dt><dd>{series.author}</dd></div>
+          <div><dt>Total length</dt><dd>~{series.totalPages.toLocaleString()} pages</dd></div>
+          <div><dt>Reading order</dt><dd>Best read 1 → 15</dd></div>
+        </dl>
+      </aside>
+    </div>
+  </section>
+
+  <!-- SELECTED FAQ -->
+  <section class="section home-faq">
+    <div class="container-narrow">
+      <p class="eyebrow center">Common questions</p>
+      <h2 class="center">Selected series FAQs</h2>
+      <div class="faq-teasers">
+        {homeFaqs.map((f) => (
+          <details class="faq-item">
+            <summary><span class="faq-q">{f.q}</span></summary>
+            <div class="faq-a"><p>{f.a}</p></div>
+          </details>
+        ))}
+      </div>
+      <p class="center"><a class="btn btn-ghost" href="/faq">See all series FAQs →</a></p>
+    </div>
+  </section>
+
+  <!-- LATEST COMMUNITY QUESTIONS -->
+  {latest.length > 0 && (
+    <section class="section community-latest">
+      <div class="container-narrow">
+        <p class="eyebrow center">From the community</p>
+        <h2 class="center">Latest reader questions</h2>
+        <ul class="latest-list">
+          {latest.map((q) => (
+            <li>
+              <a href={`/books/${q.book_slug}/#q-${q.slug}`}>
+                <span class="latest-q">{q.title}</span>
+                <span class="latest-meta">{q.response_count} {q.response_count === 1 ? 'reply' : 'replies'}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        <p class="center"><a class="btn btn-ghost" href="/ask">Ask your own question →</a></p>
+      </div>
+    </section>
+  )}
+</Base>
+
+<style>
+  .hero { background: radial-gradient(120% 120% at 80% 0%, var(--indigo-700), var(--indigo-900) 60%); color: var(--cream); padding-block: clamp(2.5rem, 6vw, 5rem); overflow: hidden; }
+  .hero-inner { display: grid; grid-template-columns: 1.15fr 1fr; gap: 2.5rem; align-items: center; }
+  .hero h1 { color: #fff; font-size: clamp(2.2rem, 5vw, 3.6rem); }
+  .hero-lede { font-size: 1.15rem; color: var(--parchment); }
+  .hero-lede strong { color: var(--gold-300); }
+  .hero-cta { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.25rem; }
+  .hero-ghost { border-color: var(--gold-300); color: var(--gold-300); }
+  .hero-ghost:hover { background: var(--gold-300); color: var(--indigo-900); }
+  .hero-meta { font-family: var(--font-sans); font-size: 0.85rem; color: var(--gold-300); margin-top: 1rem; }
+  .hero-covers { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+  .hc-1 { transform: translateY(-14px); } .hc-2 { transform: translateY(10px); }
+
+  .section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .section-head h2 { margin: 0; }
+  .lede { font-size: 1.15rem; }
+  .bookshelf-grid { grid-template-columns: repeat(5, 1fr); }
+  @media (max-width: 1000px) { .bookshelf-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 640px) { .bookshelf-grid { grid-template-columns: repeat(2, 1fr); } .hero-inner { grid-template-columns: 1fr; } .hero-covers { max-width: 320px; } }
+
+  .series-summary { background: var(--parchment); }
+  .start-one-inner { display: grid; grid-template-columns: 240px 1fr; gap: 2rem; align-items: center; }
+  @media (max-width: 640px) { .start-one-inner { grid-template-columns: 1fr; } }
+
+  .journey-list { list-style: none; padding: 0; margin: 1.5rem 0 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
+  @media (max-width: 820px) { .journey-list { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 520px) { .journey-list { grid-template-columns: 1fr; } }
+  .journey-list a { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 0 0.7rem; text-decoration: none; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem 0.9rem; align-items: center; }
+  .journey-list a:hover { border-color: var(--gold-400); }
+  .journey-num { grid-row: 1 / 3; width: 2rem; height: 2rem; display: grid; place-items: center; background: var(--indigo-800); color: var(--gold-300); border-radius: 6px; font-family: var(--font-sans); font-weight: 700; }
+  .journey-place { font-weight: 600; color: var(--indigo-900); }
+  .journey-era { font-family: var(--font-sans); font-size: 0.78rem; color: var(--muted); }
+  .journey-intro { max-width: 40rem; margin-inline: auto; }
+
+  .themes { background: var(--indigo-900); color: var(--parchment); }
+  .themes h2 { color: #fff; }
+  .center-tags { justify-content: center; margin: 1.25rem 0; }
+  .themes .pill { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.16); color: var(--gold-300); }
+  .themes-note { color: #b9ad91; max-width: 42rem; margin-inline: auto; font-size: 0.95rem; }
+
+  .parents-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 2rem; align-items: start; }
+  @media (max-width: 780px) { .parents-grid { grid-template-columns: 1fr; } }
+  .parents-panel dl { margin: 0; }
+  .parents-panel dl > div { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px dashed var(--border); font-family: var(--font-sans); font-size: 0.92rem; }
+  .parents-panel dt { color: var(--muted); } .parents-panel dd { margin: 0; font-weight: 600; }
+
+  .faq-teasers { display: flex; flex-direction: column; gap: 0.6rem; margin: 1.25rem 0; }
+  .faq-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; }
+  .faq-item summary { cursor: pointer; padding: 0.9rem 1.1rem; font-weight: 600; color: var(--indigo-900); }
+  .faq-item .faq-a { padding: 0 1.1rem 1rem; }
+
+  .latest-list { list-style: none; padding: 0; margin: 1.25rem 0; }
+  .latest-list a { display: flex; justify-content: space-between; gap: 1rem; padding: 0.8rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; text-decoration: none; margin-bottom: 0.5rem; }
+  .latest-q { color: var(--indigo-900); font-weight: 600; }
+  .latest-meta { font-family: var(--font-sans); font-size: 0.8rem; color: var(--muted); flex: none; }
+</style>

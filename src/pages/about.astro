@@ -1,0 +1,94 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { series, books } from '../lib/content';
+
+export const prerender = true;
+const siteUrl = (import.meta.env.SITE || 'https://cubechronicles.com').replace(/\/+$/, '');
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'AboutPage',
+    name: 'About The Cube Chronicles',
+    url: siteUrl + '/about',
+    about: { '@type': 'BookSeries', name: series.title, author: { '@type': 'Person', name: series.author } },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: series.author,
+    jobTitle: 'Author',
+    knowsAbout: 'The Cube Chronicles book series',
+    url: siteUrl + '/about',
+  },
+];
+---
+<Base
+  title="About the Series — The Cube Chronicles"
+  description="The Cube Chronicles is a 15-book historical time-travel adventure by Jeremy Tinder, following the Carver family across the ancient world. Learn about the series, the family, and its themes."
+  canonicalPath="/about"
+  jsonLd={jsonLd}
+>
+  <div class="container-narrow section">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'About' }]} />
+    <header class="stack">
+      <p class="eyebrow">About the series</p>
+      <h1>The Cube Chronicles</h1>
+      <p class="lede">{series.shortDescription}</p>
+    </header>
+
+    <section class="about-section">
+      <h2>The premise</h2>
+      <p>{series.premise}</p>
+    </section>
+
+    <section class="about-section">
+      <h2>The Carver family</h2>
+      <p>The series follows the {series.family.name} of {series.family.home}.</p>
+      <dl class="family-list">
+        {series.family.members.map((m) => (
+          <div><dt>{m.name}</dt><dd>{m.role}</dd></div>
+        ))}
+      </dl>
+    </section>
+
+    <section class="about-section">
+      <h2>The journey</h2>
+      <p>Across fifteen books the cube carries the children to fifteen destinations, each a real ancient civilization:</p>
+      <ol class="about-journey">
+        {series.settingsInOrder.map((s) => (
+          <li><a href={books[s.book - 1].url}><strong>Book {s.book}:</strong> {s.place}</a></li>
+        ))}
+      </ol>
+    </section>
+
+    <section class="about-section">
+      <h2>Themes</h2>
+      <ul class="tags">{series.themes.map((t) => (<li class="pill">{t}</li>))}</ul>
+    </section>
+
+    <section class="about-section panel maker-note">
+      <h2>A note on faith and “the Maker”</h2>
+      <p>{series.makerNote}</p>
+    </section>
+
+    <section class="about-section">
+      <h2>About the author</h2>
+      <p>The Cube Chronicles is written by <strong>{series.author}</strong>, who writes the Carver family across the ancient world. In his words, the foundation of every good story — like the foundation of every good building — is love.</p>
+      <p><a class="btn btn-primary" href="/books">Explore all 15 books</a></p>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .lede { font-size: 1.2rem; }
+  .about-section { margin-bottom: 2.5rem; }
+  .family-list > div { padding: 0.6rem 0; border-bottom: 1px dashed var(--border); }
+  .family-list dt { font-weight: 700; color: var(--indigo-900); }
+  .family-list dd { margin: 0.1rem 0 0; color: var(--ink-soft); }
+  .about-journey { padding-left: 1.2rem; }
+  .about-journey li { margin-bottom: 0.35rem; }
+  .about-journey a { text-decoration: none; color: var(--ink-soft); }
+  .about-journey a:hover { color: var(--link); }
+  .maker-note { background: var(--parchment); }
+</style>

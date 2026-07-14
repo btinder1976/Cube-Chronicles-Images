@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+import { books } from '../lib/content';
+export const prerender = true;
+const some = books.slice(0, 3);
+---
+<Base
+  title="Page not found — The Cube Chronicles"
+  description="The page you were looking for could not be found."
+  canonicalPath="/404"
+  noindex={true}
+>
+  <div class="container-narrow section center notfound">
+    <p class="eyebrow">Error 404</p>
+    <h1>This crossing led somewhere unexpected.</h1>
+    <p class="lede">We couldn't find that page. It may have moved, or the link may be incomplete.</p>
+    <p>
+      <a class="btn btn-primary" href="/">Back to home</a>
+      <a class="btn btn-ghost" href="/books">Browse the books</a>
+    </p>
+    <div class="nf-books">
+      {some.map((b) => (<a href={b.url} class="nf-book">Book {b.number}: {b.title}</a>))}
+    </div>
+  </div>
+</Base>
+
+<style>
+  .notfound { padding-block: 4rem; }
+  .lede { font-size: 1.15rem; }
+  .nf-books { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-top: 2rem; }
+  .nf-book { font-family: var(--font-sans); font-size: 0.9rem; background: var(--parchment); border: 1px solid var(--border); border-radius: 999px; padding: 0.4rem 0.9rem; text-decoration: none; color: var(--ink-soft); }
+</style>

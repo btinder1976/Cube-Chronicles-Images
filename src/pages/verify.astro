@@ -1,0 +1,34 @@
+---
+import Base from '../layouts/Base.astro';
+import { getEnv } from '../lib/env';
+import { verifyEmailToken } from '../lib/auth';
+
+const token = new URL(Astro.request.url).searchParams.get('token') || '';
+let ok = false;
+let message = 'Missing verification token.';
+try {
+  const env = getEnv(Astro.locals);
+  const res = await verifyEmailToken(env, token);
+  ok = res.ok;
+  message = res.message;
+} catch {
+  message = 'Verification is temporarily unavailable. Please try again shortly.';
+}
+---
+<Base
+  title="Email verification — The Cube Chronicles"
+  description="Confirm your email address for The Cube Chronicles reader community."
+  canonicalPath="/verify"
+  noindex={true}
+>
+  <div class="container-narrow section center">
+    <p class="eyebrow">Account</p>
+    <h1>{ok ? 'Email confirmed' : 'Verification'}</h1>
+    <div class={`alert ${ok ? 'alert-success' : 'alert-error'}`} role="status">{message}</div>
+    {ok ? (
+      <p><a class="btn btn-primary" href="/login?msg=verified">Sign in</a> <a class="btn btn-ghost" href="/books">Browse the books</a></p>
+    ) : (
+      <p><a class="btn btn-ghost" href="/register">Back to sign up</a></p>
+    )}
+  </div>
+</Base>

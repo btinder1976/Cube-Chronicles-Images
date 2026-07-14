@@ -1,0 +1,41 @@
+{
+  "title": "The Cube Chronicles",
+  "tagline": "A 15-book historical time-travel adventure",
+  "author": "Jeremy Tinder",
+  "bookCount": 15,
+  "ageRange": "8–12 (middle grade), enjoyed by whole families",
+  "totalPages": 3861,
+  "domain": "https://cubechronicles.com",
+  "shortDescription": "The Cube Chronicles is a fifteen-book middle-grade series in which three siblings from a close-knit, faith-filled family discover a mysterious nine-sided cube beneath their backyard shed — a cube that carries them across the ancient world, from the building of the Great Pyramid to the crossroads of the Silk Road, one civilization and one hard-won lesson at a time.",
+  "family": {
+    "name": "The Carver family",
+    "home": "Oakdale, the rural Carolinas (contemporary frame story beginning in 1986)",
+    "members": [
+      {"name": "Daniel Carver", "role": "Father; a builder and carpenter whose craft and yearly \"wisdoms\" frame each journey"},
+      {"name": "Elizabeth Carver", "role": "Mother; a Filipina-American homemaker (from Pampanga) who keeps the family's traditions of faith and hospitality"},
+      {"name": "Simeon Carver", "role": "Eldest child; a builder like his father who apprentices in a craft on every crossing"},
+      {"name": "Beckah Carver", "role": "Middle child; the family's record-keeper, reader, and decoder of the cube's signs"},
+      {"name": "Ellie Carver", "role": "Youngest child; the family's singer and listener, carrier of the songs gathered along the way"}
+    ]
+  },
+  "premise": "A nine-sided cube, discovered beneath the floorboards of an old shed, warms and glows a new configuration roughly once a year. When it activates, it carries the Carver children into a real ancient civilization, where they live, learn a craft, make friends, and come home changed. The series follows the children and their parents across fifteen years and fifteen destinations toward the still-unbuilt center of a spiral the cube has been drawing all along.",
+  "settingsInOrder": [
+    {"book": 1, "place": "Ancient Egypt (the Nile Valley, the Great Pyramid of Giza)", "region": "Egypt", "era": "Old Kingdom Egypt, c. 2560 BCE"},
+    {"book": 2, "place": "Classical Athens (the Parthenon and the Acropolis)", "region": "Greece", "era": "Golden Age of Athens, 5th century BCE"},
+    {"book": 3, "place": "Mohenjo-daro (the Indus Valley Civilization)", "region": "Indus Valley", "era": "Bronze Age, c. 2600–1900 BCE"},
+    {"book": 4, "place": "A Yellow River highland village (early Bronze Age China)", "region": "China", "era": "Early Bronze Age China, c. 1900 BCE"},
+    {"book": 5, "place": "A Jōmon fishing and pottery village (ancient Japan)", "region": "Japan", "era": "Jōmon period, c. 2500 BCE"},
+    {"book": 6, "place": "The city of Ur (ancient Sumer, Mesopotamia)", "region": "Mesopotamia", "era": "Ancient Sumer, era of Abraham"},
+    {"book": 7, "place": "A high terraced village in the Andes", "region": "Andes", "era": "Pre-Columbian Andes (Inca-era)"},
+    {"book": 8, "place": "An Amazonian food-forest civilization", "region": "Amazon", "era": "Pre-Columbian Amazonia"},
+    {"book": 9, "place": "The Pacific Northwest salmon coast", "region": "Pacific Northwest Coast", "era": "Ancient, pre-contact"},
+    {"book": 10, "place": "The Anatolian highlands (a mountain caravanserai)", "region": "Anatolia", "era": "Bronze Age / Hittite-era highlands"},
+    {"book": 11, "place": "Minoan Crete (an unwalled palace town)", "region": "Minoan Crete", "era": "Bronze Age Aegean"},
+    {"book": 12, "place": "The songline country of Aboriginal Australia", "region": "Australia", "era": "Ancient oral-tradition country"},
+    {"book": 13, "place": "The open Pacific (ancient Polynesian wayfinding)", "region": "Polynesia", "era": "Ancient Pacific voyaging era"},
+    {"book": 14, "place": "A Silk Road crossroads city", "region": "Silk Road / Central Asia", "era": "Ancient Silk Road era"},
+    {"book": 15, "place": "The center of the journey — the road home", "region": "Series finale", "era": "The culmination of all crossings"}
+  ],
+  "themes": ["family", "history", "faith", "craft and honest work", "courage", "responsibility", "hospitality and generosity", "homecoming"],
+  "makerNote": "A guiding, unseen presence the family calls \"the Maker\" is spoken of with reverence across the series but is never depicted or shown as a visible character. The website preserves that restraint."
+}

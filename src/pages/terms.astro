@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+export const prerender = true;
+---
+<Base
+  title="Terms of Use — The Cube Chronicles"
+  description="The terms that govern use of The Cube Chronicles website and its reader community."
+  canonicalPath="/terms"
+>
+  <div class="container-narrow section legal">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Terms of Use' }]} />
+    <h1>Terms of Use</h1>
+    <p class="muted"><strong>Starter template — last updated 14 July 2026.</strong> Review with an attorney before launch. Not legal advice.</p>
+
+    <h2>Acceptance</h2>
+    <p>By using this website you agree to these terms and to our <a href="/community-guidelines">Community Guidelines</a> and <a href="/privacy">Privacy Policy</a>.</p>
+
+    <h2>Accounts</h2>
+    <p>You must provide accurate information, keep your credentials secure, and are responsible for activity on your account. We may suspend or remove accounts that violate these terms or our guidelines.</p>
+
+    <h2>Eligibility & minimum age</h2>
+    <p>This community is intended for parents, educators, librarians, and readers who can lawfully create an account. <em>[Owner to insert a specific minimum age and any parental-consent process after legal review.]</em> We do not knowingly permit registration by children below that age without appropriate consent.</p>
+
+    <h2>Your content</h2>
+    <p>You retain ownership of what you post, but grant us a non-exclusive license to display and moderate it on this site. You are responsible for your submissions and must not post unlawful, harmful, infringing, or off-topic content. All submissions are moderated before publication and may be edited, declined, or removed.</p>
+
+    <h2>Intellectual property</h2>
+    <p>The Cube Chronicles books, cover art, and site content are protected by copyright. The full manuscripts are not published here. You may not reproduce cover art or site content without permission.</p>
+
+    <h2>Disclaimers & liability</h2>
+    <p>The site is provided “as is,” without warranties. To the extent permitted by law, we are not liable for indirect or consequential damages arising from your use of the site.</p>
+
+    <h2>Changes & contact</h2>
+    <p>We may update these terms. Continued use after changes constitutes acceptance. Questions? Use the <a href="/contact">contact page</a>.</p>
+
+    <div class="alert alert-warn"><strong>Owner checklist:</strong> confirm governing law/jurisdiction, dispute-resolution terms, minimum age, and DMCA/takedown contact before launch.</div>
+  </div>
+</Base>
+
+<style>.legal h2 { margin-top: 2rem; } .legal ul { padding-left: 1.2rem; }</style>

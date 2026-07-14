@@ -1,0 +1,31 @@
+---
+export interface Props { active?: string; }
+const { active = '' } = Astro.props;
+const items = [
+  { key: 'dashboard', href: '/admin', label: 'Dashboard' },
+  { key: 'questions', href: '/admin/questions', label: 'Questions' },
+  { key: 'responses', href: '/admin/responses', label: 'Responses' },
+  { key: 'reports', href: '/admin/reports', label: 'Reports' },
+  { key: 'users', href: '/admin/users', label: 'Users' },
+  { key: 'notifications', href: '/admin/notifications', label: 'Notifications' },
+  { key: 'exports', href: '/admin/exports', label: 'Exports' },
+];
+---
+<nav class="admin-nav" aria-label="Admin">
+  <span class="admin-brand">Moderation</span>
+  <ul>
+    {items.map((i) => (
+      <li><a href={i.href} aria-current={active === i.key ? 'page' : undefined}>{i.label}</a></li>
+    ))}
+  </ul>
+  <a class="admin-exit" href="/account">← Account</a>
+</nav>
+<style>
+  .admin-nav { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; background: var(--indigo-900); color: var(--cream); padding: 0.6rem 1rem; border-radius: 10px; margin-bottom: 1.5rem; }
+  .admin-brand { font-family: var(--font-sans); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; font-size: 0.78rem; color: var(--gold-300); }
+  .admin-nav ul { list-style: none; display: flex; gap: 0.25rem; margin: 0; padding: 0; flex-wrap: wrap; }
+  .admin-nav a { color: var(--cream); text-decoration: none; font-family: var(--font-sans); font-size: 0.9rem; padding: 0.35rem 0.7rem; border-radius: 6px; }
+  .admin-nav a[aria-current='page'] { background: var(--gold-600); color: #fff; }
+  .admin-nav a:hover { background: rgba(255,255,255,0.1); }
+  .admin-exit { margin-left: auto; font-size: 0.82rem !important; }
+</style>

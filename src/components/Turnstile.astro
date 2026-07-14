@@ -1,0 +1,20 @@
+---
+/**
+ * Cloudflare Turnstile widget. Renders only when a site key is configured.
+ * Server verifies the token on submit (see src/lib/turnstile.ts).
+ */
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
+const enabled = siteKey && !siteKey.startsWith('1x0000');
+---
+{enabled ? (
+  <>
+    <div class="cf-turnstile" data-sitekey={siteKey} data-theme="light"></div>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer is:inline></script>
+  </>
+) : (
+  <p class="turnstile-dev muted" hidden>Turnstile disabled in this environment.</p>
+)}
+
+<style>
+  .cf-turnstile { margin: 0.5rem 0 1rem; }
+</style>
