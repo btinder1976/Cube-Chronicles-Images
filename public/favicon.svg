@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="The Cube Chronicles">
+  <rect width="64" height="64" rx="12" fill="#10182e"/>
+  <g transform="translate(32 33)">
+    <!-- isometric cube -->
+    <polygon points="0,-18 16,-9 16,9 0,18 -16,9 -16,-9" fill="#1b2a4a" stroke="#d9b45a" stroke-width="1.5"/>
+    <polygon points="0,-18 16,-9 0,0 -16,-9" fill="#ecd18a"/>
+    <polygon points="16,-9 16,9 0,18 0,0" fill="#b3891f"/>
+    <polygon points="-16,-9 0,0 0,18 -16,9" fill="#8a6d1f"/>
+    <line x1="0" y1="0" x2="0" y2="18" stroke="#10182e" stroke-width="1"/>
+    <line x1="0" y1="0" x2="16" y2="-9" stroke="#10182e" stroke-width="1"/>
+    <line x1="0" y1="0" x2="-16" y2="-9" stroke="#10182e" stroke-width="1"/>
+  </g>
+</svg>
