@@ -5,5 +5,12 @@
     { "key": "barnesnoble", "name": "Barnes & Noble" },
     { "key": "bookshop", "name": "Bookshop.org" }
   ],
-  "byBook": {}
+  "byBook": {
+    "02-the-compass-the-coast-and-the-edge-of-the-world": {
+      "amazon": {
+        "url": "https://www.amazon.com/dp/B0GXBK63TY",
+        "placeholder": false
+      }
+    }
+  }
 }
