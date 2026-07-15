@@ -39,7 +39,7 @@ pages_build_output_dir = "./dist"
 [vars]
 # Use the temporary *.pages.dev URL for the first test deployment, then change
 # this to https://cubechronicles.com after the custom domain is connected.
-SITE_URL = "https://cubechronicles.com"
+SITE_URL = "https://cubechronicles.pages.dev"
 EMAIL_FROM_ADDRESS = "no-reply@cubechronicles.com"
 EMAIL_FROM_NAME = "The Cube Chronicles"
 # Log mode lets registration and notification flows run during initial testing
